@@ -47,7 +47,7 @@ CLASSPATH=.:../build/:$classpath
 JAVA_OPTS="$DEBUG -Djava.awt.headless=true  -Xmx512M -Xms64M -Dkakadu.home=$KAKADU_HOME -Djava.library.path=$LIBPATH/$PLATFORM $KAKADU_LIBRARY_PATH"
 
 # If a proxy server is used in your env... set the following
-proxySet=true
-proxyPort=8080
-proxyHost=proxyout.lanl.gov
-JAVA_OPTS="$JAVA_OPTS -DproxySet=$proxySet -DproxyPort=$proxyPort -DproxyHost=$proxyHost"
+#proxySet=true
+#proxyPort=8080
+#proxyHost=proxyout.lanl.gov
+#JAVA_OPTS="$JAVA_OPTS -DproxySet=$proxySet -DproxyPort=$proxyPort -DproxyHost=$proxyHost"
