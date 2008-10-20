@@ -120,7 +120,6 @@
 
   <target name="clean" description="Remove all generated files from build tree">
     <delete dir="${build.dir}"/>
-    <delete dir="${dist.dir}"/>
     <delete file="adore-djatoka-${version}.tar"/>
   </target>
 

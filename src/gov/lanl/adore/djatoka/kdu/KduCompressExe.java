@@ -47,7 +47,6 @@ import org.apache.log4j.Logger;
  *
  */
 public class KduCompressExe implements ICompress {
-	static Logger logger = Logger.getLogger(KduCompressExe.class);
 	private static boolean isWindows = false;
 	private static String env;
 	private static String exe;
@@ -68,8 +67,6 @@ public class KduCompressExe implements ICompress {
 			envParams = new String[] { "DYLD_LIBRARY_PATH="
 					+ System.getProperty("DYLD_LIBRARY_PATH") };
 		} else if (System.getProperty("os.name").startsWith("Win")) {
-			envParams = new String[] { "PATH="
-					+ System.getProperty("LD_LIBRARY_PATH") };
 			isWindows = true;
 		} else if (System.getProperty("os.name").startsWith("Linux")) {
 			envParams = new String[] { "LD_LIBRARY_PATH="
@@ -78,7 +75,6 @@ public class KduCompressExe implements ICompress {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
-		logger.debug(envParams);
 	}
 
 	/**
@@ -91,7 +87,7 @@ public class KduCompressExe implements ICompress {
 	public KduCompressExe() throws Exception {
 		env = System.getProperty("kakadu.home");
 		if (env == null) {
-			logger.error("kakadu.home is not defined");
+			System.err.println("kakadu.home is not defined");
 			throw new Exception("kakadu.home is not defined");
 		}
 	}
@@ -309,10 +305,16 @@ public class KduCompressExe implements ICompress {
 	public static final String getKduCompressCommand(String input, String output,
 			DjatokaEncodeParam params) {
 		StringBuffer command = new StringBuffer(exe);
-		command.append(" -quiet -i ").append(new File(input).getAbsolutePath());
-		command.append(" -o ").append(new File(output).getAbsolutePath());
+		command.append(" -quiet -i ").append(escape(new File(input).getAbsolutePath()));
+		command.append(" -o ").append(escape(new File(output).getAbsolutePath()));
 		command.append(" ").append(toKduCompressArgs(params));
 		return command.toString();
+	}
+	
+	private static final String escape(String path) {
+		if (path.contains(" "))
+			path = "\"" + path + "\"";
+		return path;
 	}
 	
 	private static String toKduCompressArgs(DjatokaEncodeParam params) {

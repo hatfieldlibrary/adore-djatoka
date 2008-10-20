@@ -66,6 +66,12 @@ public class KduExtractExe implements IExtract {
 	/** UNIX/Linux Standard Out Path: "/dev/stdout" */
 	public static String STDOUT = "/dev/stdout";
 
+	private static final String escape(String path) {
+		if (path.contains(" "))
+			path = "\"" + path + "\"";
+		return path;
+	}
+
 	static {
 		env = System.getProperty("kakadu.home")
 				+ System.getProperty("file.separator");
@@ -77,8 +83,6 @@ public class KduExtractExe implements IExtract {
 			envParams = new String[] { "DYLD_LIBRARY_PATH="
 					+ System.getProperty("DYLD_LIBRARY_PATH") };
 		} else if (System.getProperty("os.name").startsWith("Win")) {
-			envParams = new String[] { "PATH="
-					+ System.getProperty("LD_LIBRARY_PATH") };
 			isWindows = true;
 		} else if (System.getProperty("os.name").startsWith("Linux")) {
 			envParams = new String[] { "LD_LIBRARY_PATH="
@@ -130,7 +134,8 @@ public class KduExtractExe implements IExtract {
 		File winOut = null;
 		if (isWindows) {
 			try {
-				winOut = File.createTempFile("pipe_", ".pnm");
+				winOut = File.createTempFile("pipe_", ".ppm");
+				winOut.deleteOnExit();
 			} catch (IOException e) {
 				throw new DjatokaException(e);
 			}
@@ -147,20 +152,29 @@ public class KduExtractExe implements IExtract {
 					if (output.equals(STDOUT)) {
 						return new PNMReader().open(new BufferedInputStream(
 								process.getInputStream()));
-					} else if (isWindows && output.endsWith(".pnm")) {
-						return new PNMReader().open(output);
-				    } else
-						return new ImageJReader().open(output);
+					} else if (isWindows) {
+						// Windows tests indicated need for delay (< 100ms failed)
+						Thread.sleep(100);
+						BufferedImage bi = null;
+						try {
+							bi = new PNMReader().open(new BufferedInputStream(new FileInputStream(new File(output))));
+						} catch (Exception e) {
+						    if (winOut != null)
+								winOut.delete();
+						    throw e;
+						}
+						if (winOut != null)
+							winOut.delete();
+						return bi;
+				    } 
 				} catch (Exception e) {
+					e.printStackTrace();
 					throw new DjatokaException(e);
-				}
+				} 
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (winOut != null)
-				winOut.delete();
-		}
+		} 
 		return null;
 	}
 
@@ -175,8 +189,8 @@ public class KduExtractExe implements IExtract {
 	public final String getKduCompressCommand(String input, String output,
 			ArrayList<Double> dims, DjatokaDecodeParam params) {
 		StringBuffer command = new StringBuffer(exe);
-		command.append(" -quiet -i ").append(new File(input).getAbsolutePath());
-		command.append(" -o ").append(new File(output).getAbsolutePath());
+		command.append(" -quiet -i ").append(escape(new File(input).getAbsolutePath()));
+		command.append(" -o ").append(escape(new File(output).getAbsolutePath()));
 		command.append(" ").append(toKduCompressArgs(params));
 		if (dims != null && dims.size() == 4) {
 			StringBuffer region = new StringBuffer();

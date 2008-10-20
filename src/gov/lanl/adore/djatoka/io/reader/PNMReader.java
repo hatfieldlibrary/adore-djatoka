@@ -38,7 +38,7 @@ import com.sun.media.jai.codec.ImageDecoder;
 
 /**
  * Returns BufferedImage give a PNM image InputStream or file path. 
- * Uses JAI to open PHM formatted images.
+ * Uses JAI to open PNM formatted images.
  * @author Ryan Chute
  *
  */
