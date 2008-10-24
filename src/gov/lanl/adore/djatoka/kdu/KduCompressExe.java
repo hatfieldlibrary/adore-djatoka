@@ -153,7 +153,7 @@ public class KduCompressExe implements ICompress {
 
 	/**
 	 * Compress input using provided DjatokaEncodeParam parameters.
-	 * @param input InputStream containing image bitstream
+	 * @param input InputStream containing TIFF image bitstream
 	 * @param output absolute file path for output file.
 	 * @param params DjatokaEncodeParam containing compression parameters.
 	 * @throws DjatokaException
@@ -184,7 +184,7 @@ public class KduCompressExe implements ICompress {
 
 	/**
 	 * Compress input using provided DjatokaEncodeParam parameters.
-	 * @param input InputStream containing image bitstream
+	 * @param input InputStream containing TIFF image bitstream
 	 * @param output OutputStream to serialize compressed image.
 	 * @param params DjatokaEncodeParam containing compression parameters.
 	 * @throws DjatokaException
@@ -221,15 +221,21 @@ public class KduCompressExe implements ICompress {
 				out, params);
 		Runtime rt = Runtime.getRuntime();
 		try {
-			Process process = rt.exec(command, envParams, new File(env));
-			if (output.equals(STDOUT)) {
+			final Process process = rt.exec(command, envParams, new File(env));
+			if (out.equals(STDOUT)) {
 				IOUtils.copyStream(process.getInputStream(), output);
 			} else if (isWindows) {
 				FileInputStream fis = new FileInputStream(out);
 				IOUtils.copyStream(fis, output);
+				fis.close();
 			}
-
 			process.waitFor();
+			if (process != null) {
+				process.getInputStream().close();
+				process.getOutputStream().close();
+				process.getErrorStream().close();
+				process.destroy();
+			}
 		} catch (IOException e) {
 			throw new DjatokaException(e);
 		} catch (InterruptedException e) {
@@ -280,8 +286,14 @@ public class KduCompressExe implements ICompress {
 				.getAbsolutePath(), outFile.getAbsolutePath(), params);
 		Runtime rt = Runtime.getRuntime();
 		try {
-			Process process = rt.exec(command, envParams, new File(env));
+			final Process process = rt.exec(command, envParams, new File(env));
 			process.waitFor();
+			if (process != null) {
+				process.getInputStream().close();
+				process.getOutputStream().close();
+				process.getErrorStream().close();
+				process.destroy();
+			}
 		} catch (IOException e) {
 			throw new DjatokaException(e);
 		} catch (InterruptedException e) {

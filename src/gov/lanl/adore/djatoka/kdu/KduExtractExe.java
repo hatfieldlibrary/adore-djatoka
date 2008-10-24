@@ -145,7 +145,7 @@ public class KduExtractExe implements IExtract {
 		try {
 			ArrayList<Double> dims = getRegionMetadata(input, params);
 			String command = getKduCompressCommand(input, output, dims, params);
-			Process process = rt.exec(command, envParams, new File(env));
+			final Process process = rt.exec(command, envParams, new File(env));
 			
 			if (output != null) {
 				try {
@@ -171,6 +171,12 @@ public class KduExtractExe implements IExtract {
 					e.printStackTrace();
 					throw new DjatokaException(e);
 				} 
+			}
+			if (process != null) {
+				process.getInputStream().close();
+				process.getOutputStream().close();
+				process.getErrorStream().close();
+				process.destroy();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
