@@ -159,8 +159,12 @@ public class DjatokaExtractProcessor {
 			try {
 				FileOutputStream os = new FileOutputStream(new File(dest));
 				w.write(bi, os);
+				os.close();
 			} catch (FileNotFoundException e) {
 				logger.error("Requested file was not found: " + dest);
+				throw new DjatokaException(e);
+			} catch (IOException e) {
+				logger.error("Error attempting to close: " + dest);
 				throw new DjatokaException(e);
 			}
 		}

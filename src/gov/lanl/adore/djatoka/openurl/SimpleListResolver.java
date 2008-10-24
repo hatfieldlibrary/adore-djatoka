@@ -51,7 +51,7 @@ public class SimpleListResolver implements IReferentResolver {
 	private static DjatokaImageMigrator dim = new DjatokaImageMigrator();
 	
 	/**
-	 * Referent Identifer to be resolved from Identifier Resolver. The returned
+	 * Referent Identifier to be resolved from Identifier Resolver. The returned
 	 * ImageRecord need only contain the imageId and image file path.
 	 * @param rft identifier of the image to be resolved
 	 * @return ImageRecord instance containing resolvable metadata
@@ -63,7 +63,7 @@ public class SimpleListResolver implements IReferentResolver {
 	}
 	
 	/**
-	 * Referent Identifer to be resolved from Identifier Resolver. The returned
+	 * Referent Identifier to be resolved from Identifier Resolver. The returned
 	 * ImageRecord need only contain the imageId and image file path.
 	 * @param rftId identifier of the image to be resolved
 	 * @return ImageRecord instance containing resolvable metadata

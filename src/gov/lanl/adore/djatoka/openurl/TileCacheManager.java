@@ -59,8 +59,8 @@ public class TileCacheManager<K, V> {
 	}
 
 	public synchronized V remove(K key) {
-		if (key instanceof java.io.File)
-			((File) key).delete();
+		if (get(key) instanceof java.io.File)
+			((File) get(key)).delete();
 		return cacheMap.remove(key);
 	}
 
