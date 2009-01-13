@@ -46,6 +46,12 @@ public class DjatokaDecodeParam implements DjatokaConstants {
 	
 	private int rotate = 0;
 	
+	private double scalingFactor = 1.0;
+	
+	private int[] scalingDims = null;
+	
+	private int compLayer = 0;
+	
 	private ITransformPlugIn transform;
 
 	public DjatokaDecodeParam() {}
@@ -136,5 +142,49 @@ public class DjatokaDecodeParam implements DjatokaConstants {
 	 */
 	public void setTransform(ITransformPlugIn transform) {
 		this.transform = transform;
+	}
+
+	public void setCompositingLayer(int compLayer) {
+		this.compLayer = compLayer;
+	}
+	
+	public int getCompositingLayer() {
+		return compLayer;
+	}
+
+	/**
+	 * Gets a positive scaling factor (e.g. 0.85643), where 1.0 is the 
+	 * current size. Value must be greater than 0 and less than 2. 
+	 * @return a positive scaling factor
+	 */
+	public double getScalingFactor() {
+		return scalingFactor;
+	}
+
+	/**
+	 * Sets a positive scaling factor (e.g. 0.85643), where 1.0 is the 
+	 * current size. Value must be greater than 0 and less than 2. 
+	 * @param scalingFactor a positive scaling factor to be applied
+	 */
+	public void setScalingFactor(double scalingFactor) {
+		this.scalingFactor = scalingFactor;
+	}
+	
+	/**
+	 * Gets the ScalingDimensions to be applied; w,h.
+	 * @return null if no scaling is to be performed or an int[] 
+	 * with length of 2 containing w,h values
+	 */
+	public int[] getScalingDimensions() {
+		return scalingDims;
+	}
+
+	/**
+	 * Sets the ScalingDimensions to be applied; w,h.
+	 * @param scalingDims int[] with length of 2 containing w,h values. 
+	 * Use value of 0 to maintain aspect ratio and calculate second value. 
+	 */
+	public void setScalingDimensions(int[] scalingDims) {
+		this.scalingDims = scalingDims;
 	}
 }

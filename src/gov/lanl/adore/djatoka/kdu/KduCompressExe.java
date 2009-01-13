@@ -231,10 +231,17 @@ public class KduCompressExe implements ICompress {
 			}
 			process.waitFor();
 			if (process != null) {
+				String errorCheck = null;
+				try {
+					errorCheck = new String(IOUtils.getByteArray(process.getErrorStream()));
+				} catch (Exception e1) {
+				}
 				process.getInputStream().close();
 				process.getOutputStream().close();
 				process.getErrorStream().close();
 				process.destroy();
+				if (errorCheck != null)
+					throw new DjatokaException(errorCheck);
 			}
 		} catch (IOException e) {
 			throw new DjatokaException(e);
@@ -289,10 +296,17 @@ public class KduCompressExe implements ICompress {
 			final Process process = rt.exec(command, envParams, new File(env));
 			process.waitFor();
 			if (process != null) {
+				String errorCheck = null;
+				try {
+					errorCheck = new String(IOUtils.getByteArray(process.getErrorStream()));
+				} catch (Exception e1) {
+				}
 				process.getInputStream().close();
 				process.getOutputStream().close();
 				process.getErrorStream().close();
 				process.destroy();
+				if (errorCheck != null && !errorCheck.equals(""))
+					throw new DjatokaException(errorCheck);
 			}
 		} catch (IOException e) {
 			throw new DjatokaException(e);

@@ -59,9 +59,7 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 	private static final String SVC_ID = "info:lanl-repo/svc/getMetadata";
 	
 	private static String implClass = null;
-	private static IReferentResolver referentResolver;
 	private static Properties props = new Properties();
-	private static boolean init = false;
 
 	/**
 	 * Construct an info:lanl-repo/svc/getMetadata web service class. Initializes 
@@ -73,15 +71,10 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 	 */
 	public OpenURLJP2KMetadata(OpenURLConfig openURLConfig, ClassConfig classConfig) throws ResolverException {
         try {
-        	if (!init) {
+        	if (!ReferentManager.isInit()) {
         		props = IOUtils.loadConfigByCP(classConfig.getArg("props"));
                 implClass = props.getProperty(PROPS_KEY_IMPL_CLASS,DEFAULT_IMPL_CLASS);
-                referentResolver = (IReferentResolver) Class.forName(implClass).newInstance();
-                init = true;
-                if (referentResolver != null)
-                	referentResolver.setProperties(props);
-                else
-            	    throw new ResolverException("Unable to inititalize implementation: " + props.getProperty(implClass));
+                ReferentManager.init((IReferentResolver) Class.forName(implClass).newInstance(), props);
         	}
         } catch (IOException e) {
             throw new ResolverException("Error attempting to open props file from classpath, disabling " + SVC_ID + " : " + e.getMessage());
@@ -114,18 +107,16 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 	    try {
 			baos = new ByteArrayOutputStream();
 			IExtract jp2 = new KduExtractExe();
-			ImageRecord r = referentResolver.getImageRecord(contextObject.getReferent());
-			Integer[] dims = jp2.getMetadata(r.getImageFile());
-			r.setWidth(dims[0]);
-			r.setHeight(dims[1]);
-			r.setLevels(dims[2]);
+			ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
+			r = jp2.getMetadata(r);
 			StringBuffer sb = new StringBuffer();
 			sb.append("{");
 			sb.append("\n\"identifier\": \"" + r.getIdentifier() + "\",");
 			sb.append("\n\"imagefile\": \"" + r.getImageFile() + "\",");
-			sb.append("\n\"width\": \"" + r.getWidth()+ "\",");
-			sb.append("\n\"height\": \"" + r.getHeight()+ "\",");
-			sb.append("\n\"levels\": \"" + r.getLevels()+ "\"");
+			sb.append("\n\"width\": \"" + r.getWidth() + "\",");
+			sb.append("\n\"height\": \"" + r.getHeight() + "\",");
+			sb.append("\n\"levels\": \"" + r.getLevels() + "\",");
+			sb.append("\n\"compositingLayerCount\": \"" + r.getCompositingLayerCount() + "\"");
 			sb.append("\n}");
 			baos.write(sb.toString().getBytes());
 		} catch (Exception e) {

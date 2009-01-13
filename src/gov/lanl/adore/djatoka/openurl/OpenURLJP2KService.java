@@ -74,7 +74,6 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 	private static final int DEFAULT_CACHE_MAXPIXELS = 100000;
 
 	private static String implClass = null;
-	private static IReferentResolver referentResolver;
 	private static Properties props  = new Properties();
 	private static boolean init = false;
 	private static boolean cacheTiles = true;
@@ -97,9 +96,10 @@ public class OpenURLJP2KService implements Service, FormatConstants {
         try {
         	if (!init) {
                 props = IOUtils.loadConfigByCP(classConfig.getArg("props"));
-                implClass = props.getProperty(PROPS_KEY_IMPL_CLASS,DEFAULT_IMPL_CLASS);
-                referentResolver = (IReferentResolver) Class.forName(implClass).newInstance();
-                
+            	if (!ReferentManager.isInit()) {
+                    implClass = props.getProperty(PROPS_KEY_IMPL_CLASS,DEFAULT_IMPL_CLASS);
+                    ReferentManager.init((IReferentResolver) Class.forName(implClass).newInstance(), props);
+            	}
                 cacheDir = props.getProperty(PROPS_KEY_CACHE_TMPDIR);
                 if (props.getProperty(PROPS_KEY_CACHE_ENABLED) != null) 
                 	cacheTiles = Boolean.parseBoolean(props.getProperty(PROPS_KEY_CACHE_ENABLED));
@@ -117,10 +117,6 @@ public class OpenURLJP2KService implements Service, FormatConstants {
                 	maxPixels = Integer.parseInt(props.getProperty(PROP_KEY_CACHE_MAX_PIXELS));
                 extractor = new DjatokaExtractProcessor(new KduExtractExe());
                 init = true;
-                if (referentResolver != null)
-                	referentResolver.setProperties(props);
-                else
-            	    throw new ResolverException("Unable to inititalize implementation: " + props.getProperty(implClass));
         	}
         } catch (IOException e) {
             throw new ResolverException("Error attempting to open props file from classpath, disabling " + SVC_ID + " : " + e.getMessage());
@@ -165,6 +161,20 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			params.setLevel(Integer.parseInt(kev.get("level")));
 		if (kev.containsKey("rotate"))
 			params.setRotationDegree(Integer.parseInt(kev.get("rotate")));
+		if (kev.containsKey("scale")) {
+			String[] v = kev.get("scale").split(",");
+			if (v.length == 1)
+			    params.setScalingFactor(Double.parseDouble(kev.get("scale")));
+			else if (v.length == 2) {
+				int[] dims = new int[]{Integer.parseInt(v[0]),Integer.parseInt(v[1])};
+				params.setScalingDimensions(dims);
+			}
+		}
+		if (kev.containsKey("clayer") && kev.get("clayer") != null) {
+			int clayer = Integer.parseInt(kev.get("clayer"));
+			if (clayer > 0)
+			    params.setCompositingLayer(clayer);
+		}
 		responseFormat = format;
 
 		byte[] bytes = null;
@@ -186,7 +196,7 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			status = HttpServletResponse.SC_NOT_FOUND;
 		} else {
 			try {
-				ImageRecord r = referentResolver.getImageRecord(contextObject.getReferent());
+				ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
 				if (transformCheck && transform != null) {
 					HashMap<String, String> instProps = new HashMap<String, String>();
 				    if (r.getInstProps() != null)
@@ -205,19 +215,20 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 				    bytes = baos.toByteArray();
 				    baos.close();
 				} else {
-					String hash = getTileHash(r.getIdentifier(), params.getLevel(), params.getRegion(), params.getRotationDegree());
+					String ext = getExtension(format);
+					String hash = getTileHash(r, params);
 					String file = null;
-					if ((file = tileCache.get(hash)) == null) {
+					if ((file = tileCache.get(hash+ext)) == null) {
 						File f;
 						if (cacheDir != null)
-							f = File.createTempFile("cache" + hash.hashCode() + "-", ".jpg", new File(cacheDir));
+							f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext, new File(cacheDir));
 						else
-						    f = File.createTempFile("cache" + hash.hashCode() + "-", ".jpg");
+						    f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext);
 						f.deleteOnExit();
 						file = f.getAbsolutePath();
 						extractor.extractImage(r.getImageFile(), file, params, format);
 						bytes = IOUtils.getBytesFromFile(f);
-						tileCache.put(hash, file);
+						tileCache.put(hash+ext, file);
 					} else {
 						bytes = IOUtils.getBytesFromFile(new File(file));
 					}
@@ -254,11 +265,38 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 		return true;
 	}
 	
-	private static final String getTileHash(String rft_id, int level, String region, int rotateDegree) throws Exception {
-		rft_id = rft_id + level + region + rotateDegree; 
+	private static final String getTileHash(ImageRecord r, DjatokaDecodeParam params) throws Exception {
+		String id = r.getIdentifier();
+		int level = params.getLevel();
+		String region = params.getRegion(); 
+		int rotateDegree = params.getRotationDegree();
+		double scalingFactor = params.getScalingFactor();
+		int[] scalingDims = params.getScalingDimensions();
+		int clayer = params.getCompositingLayer();
+		String rft_id = id + "|" + level + "|" + region + "|" + rotateDegree + "|" + scalingFactor + "|" + scalingDims + "|" + clayer; 
 	    MessageDigest complete = MessageDigest.getInstance("SHA1");
 		return new String(complete.digest(rft_id.getBytes()));
     }
+	
+	private static final String getExtension(String mimetype) {
+		if (mimetype.equals(FORMAT_MIMEYPE_JPEG))
+			return FORMAT_ID_JPG;
+		if (mimetype.equals(FORMAT_MIMEYPE_PNG))
+			return FORMAT_ID_PNG;
+		if (mimetype.equals(FORMAT_MIMEYPE_BMP))
+			return FORMAT_ID_BMP;
+		if (mimetype.equals(FORMAT_MIMEYPE_GIF))
+			return FORMAT_ID_GIF;
+		if (mimetype.equals(FORMAT_MIMEYPE_PNM))
+			return FORMAT_ID_PNM;
+		if (mimetype.equals(FORMAT_MIMEYPE_JP2))
+			return FORMAT_ID_JP2;
+		if (mimetype.equals(FORMAT_MIMEYPE_JPX))
+			return FORMAT_ID_JPX;
+		if (mimetype.equals(FORMAT_MIMEYPE_JPM))
+			return FORMAT_ID_JP2;
+		return null;
+	}
 	
     private static HashMap<String, String> setServiceValues(ContextObject co) {
 		HashMap<String, String> map = new HashMap<String, String>();
@@ -289,6 +327,16 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 										"svc.rotate"))[0] != "")
 							map.put("rotate", ((String[]) kev.getFieldMap()
 									.get("svc.rotate"))[0]);
+						if (kev.getFieldMap().containsKey("svc.scale")
+								&& ((String[]) kev.getFieldMap().get(
+										"svc.scale"))[0] != "")
+							map.put("scale", ((String[]) kev.getFieldMap()
+									.get("svc.scale"))[0]);
+						if (kev.getFieldMap().containsKey("svc.clayer")
+								&& ((String[]) kev.getFieldMap().get(
+										"svc.clayer"))[0] != "")
+							map.put("clayer", ((String[]) kev.getFieldMap()
+									.get("svc.clayer"))[0]);
 					}
 				}
 			}

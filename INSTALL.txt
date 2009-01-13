@@ -1,4 +1,4 @@
-adore-djatoka-1.0 Installation Notes
+adore-djatoka-1.1 Installation Notes
 
 -------------------------------
 1. Requirements
@@ -11,8 +11,6 @@ adore-djatoka-1.0 Installation Notes
 - Mac OS-X Intel
 - Solaris-sparc (32 bit support only)
 - Windows-i586
-* Planned Support for OS/Hardware:
-- Solaris-sparcv9
 
 -------------------------------
 2. Test the djatoka compression and extraction applications
@@ -56,7 +54,33 @@ Issue 2:  The exception "gov.lanl.adore.djatoka.DjatokaException: gov.lanl.adore
 Resolution: The is typically the result of a firewall or proxy server blocking a request to download a remote image.  The env.sh script in adore-djatoka/bin provides the necessary JAVA_OPTS proxy settings. Uncomment and set these properties then restart the Tomcat instance using the djatoka Tomcat start-up script and try "Update Image" again.
 
 -------------------------------
-4. Explore
+4. Add Content
+-------------------------------
+1. Compress some images
+2. Update the reference in $CATALINA_HOME/webapps/adore-djatoka/WEB-INF/classes/imgIndex.txt
+- imgIndex.txt is an example the identifier resolver interface functions. It's a simple map associating a rft_id with a file path.
+- Format: 2 tab delimited columns with a single line per resource.
+		- Column A being the rft_id
+		- Column B being an absolute file path for the JP2 file.
+		- Example: info:lanl-repo/ds/CB_TM_QQ432    /path/to/file.jp2
+- Request Usage:
+http://an.example.org/djatoka/resolver?
+    url_ver=Z39.88-2004 &
+    rft_id=info:lanl-repo/ds/CB_TM_QQ432 &
+    svc_id=info:lanl-repo/svc/getRegion &
+    svc_val_fmt=info:ofi/fmt:kev:mtx:jpeg2000 &
+    svc.format=image/jpeg &
+    svc.level=4 &
+    svc.rotate=0 &
+    svc.region=899,1210,657,1106
+will resolve the rft_id (e.g. info:lanl-repo/ds/CB_TM_QQ432) to a local file path (e.g. /path/to/file.jp2) using the imgIndex.txt file, then perform the necessary operations on the resource.
+3. ./tomcat.sh stop
+4. ./tomcat.sh start
+5. Go to http://<host>:<port>/adore-djatoka/
+6. Enter an identifier for one of your images defined in imgIndex.txt. 
+
+-------------------------------
+5. Explore
 -------------------------------
 adore-djatoka-*.* 
 |- bin - Contains image compression and extraction utilities and binaries

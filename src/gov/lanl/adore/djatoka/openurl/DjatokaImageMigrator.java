@@ -31,6 +31,8 @@ import gov.lanl.adore.djatoka.io.FormatConstants;
 import gov.lanl.adore.djatoka.kdu.KduCompressExe;
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
 import gov.lanl.adore.djatoka.util.IOUtils;
+import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
+import gov.lanl.adore.djatoka.util.ImageRecord;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,6 +66,13 @@ public class DjatokaImageMigrator implements FormatConstants {
 		// Additional Extensions
 		formatMap.put(FORMAT_ID_JPG, FORMAT_MIMEYPE_JPEG);
 		formatMap.put(FORMAT_ID_TIF, FORMAT_MIMEYPE_TIFF);
+		// Additional JPEG 2000 Extensions
+		formatMap.put(FORMAT_ID_J2C, FORMAT_MIMEYPE_JP2);
+		formatMap.put(FORMAT_ID_JPC, FORMAT_MIMEYPE_JP2);
+		formatMap.put(FORMAT_ID_J2K, FORMAT_MIMEYPE_JP2);
+		formatMap.put(FORMAT_ID_JPF, FORMAT_MIMEYPE_JPX);
+		formatMap.put(FORMAT_ID_JPX, FORMAT_MIMEYPE_JPX);
+		formatMap.put(FORMAT_ID_JPM, FORMAT_MIMEYPE_JPM);
 	}
 	
 	/**
@@ -75,14 +84,32 @@ public class DjatokaImageMigrator implements FormatConstants {
 	public File convert(URI uri) throws DjatokaException {
 		try {
 			processing.add(uri.toString());
-			File urlLocal;
+			File urlLocal = null;
 			// Obtain Resource
 			InputStream src = IOUtils.getInputStream(uri.toURL());
-			if (uri.toURL().toString().endsWith("tif") || uri.toURL().toString().endsWith("tiff")) {
-				urlLocal = File.createTempFile("convert" + uri.hashCode(), ".tif");
-			} else if (uri.toURL().toString().endsWith("jp2")) {
-				urlLocal = File.createTempFile("cache" + uri.hashCode(), ".jp2");
+			String ext = uri.toURL().toString().substring(uri.toURL().toString().lastIndexOf(".") + 1);
+			if (ext.equals(FORMAT_ID_TIF) || ext.equals(FORMAT_ID_TIFF)) {
+				urlLocal = File.createTempFile("convert" + uri.hashCode(), "." + FORMAT_ID_TIF);
+			} else if (formatMap.containsKey(ext) && (formatMap.get(ext).equals(FORMAT_MIMEYPE_JP2) || formatMap.get(ext).equals(FORMAT_MIMEYPE_JPX))) {
+				urlLocal = File.createTempFile("cache" + uri.hashCode(), "."  + ext);
 			} else {
+                if (src.markSupported())
+                    src.mark(15);
+                 
+                if (ImageProcessingUtils.checkIfJp2(src))
+                     urlLocal = File.createTempFile("cache" + uri.hashCode(), "."  + FORMAT_ID_JP2);
+                 
+                if (src.markSupported())
+					src.reset();
+				else {
+					// close and reopen the stream
+					src.close();
+					src = IOUtils.getInputStream(uri.toURL());
+				}
+
+		    } 
+
+			if (urlLocal == null) {
 				urlLocal = File.createTempFile("convert" + uri.hashCode(), ".img");
 			}
 			urlLocal.deleteOnExit();
@@ -118,7 +145,7 @@ public class DjatokaImageMigrator implements FormatConstants {
 		String imgPath = img.getAbsolutePath();
 		String fmt = formatMap.get(imgPath.substring(imgPath.lastIndexOf('.') + 1));
 		try {
-			if (fmt == null || !fmt.equals(FORMAT_MIMEYPE_JP2)) {
+			if (fmt == null || !ImageProcessingUtils.isJp2Type(fmt)) {
 				ICompress jp2 = new KduCompressExe();
 				File jp2Local = File.createTempFile("cache" + uri.hashCode() + "-", ".jp2");
 				jp2Local.delete();
@@ -128,7 +155,7 @@ public class DjatokaImageMigrator implements FormatConstants {
 			} else {
 				try {
 					IExtract ex = new KduExtractExe();
-					ex.getMetadata(img.getAbsolutePath());
+					ex.getMetadata(new ImageRecord(uri.toString(), img.getAbsolutePath()));
 				} catch (DjatokaException e) {
 					throw new DjatokaException("Unknown JP2/JPX file format");
 				}

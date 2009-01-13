@@ -57,8 +57,8 @@ public class TIFWriter implements IWriter {
 	 * @throws FormatIOException
 	 */
 	public void write(BufferedImage bi, OutputStream os) throws FormatIOException {
-		//writeUsingImageIO(bi, os);
-		writeUsingJAI(bi, os);
+		writeUsingImageIO(bi, os);
+		//writeUsingJAI(bi, os);
 		//writeUsingImageJ(bi, os);
 	}
 	
@@ -81,6 +81,15 @@ public class TIFWriter implements IWriter {
 				ImageIO.write(bi, "tif", bos);
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				if (bos != null) {
+					try {
+						bos.flush();
+						bos.close();
+					} catch (IOException e) {
+						throw new FormatIOException(e);
+					}
+				}
 			}
 		}
 	}
@@ -96,8 +105,17 @@ public class TIFWriter implements IWriter {
 				enc.encode(bi);
 			} catch (IOException e) {
 				e.printStackTrace();
+			} finally {
+				if (bos != null) {
+					try {
+						bos.flush();
+						bos.close();
+					} catch (IOException e) {
+						throw new FormatIOException(e);
+					}
+				}
 			}
-		}
+		} 
 	}
 	
 	/**

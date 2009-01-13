@@ -26,12 +26,15 @@ package gov.lanl.adore.djatoka.kdu.jni;
 import gov.lanl.adore.djatoka.DjatokaDecodeParam;
 import gov.lanl.adore.djatoka.DjatokaException;
 import gov.lanl.adore.djatoka.IExtract;
+import gov.lanl.adore.djatoka.util.ImageRecord;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 
 import kdu_jni.Jp2_family_src;
+import kdu_jni.Jp2_input_box;
 import kdu_jni.Jp2_locator;
 import kdu_jni.Jp2_source;
 import kdu_jni.KduException;
@@ -50,25 +53,22 @@ import kdu_jni.Kdu_dims;
 public class KduExtractJNI implements IExtract {
 
 	/**
-	 * Returns JPEG 2000 width, height, resolution levels in Integer[]
-	 * 		int[0] = Image Width;
-	 *		int[1] = Image Height;
-     *		int[2] = Number of Resolution Levels;
-	 * @param input absolute file path of JPEG 2000 image file.
-	 * @return width,height,DWT levels of image
+	 * Returns JPEG 2000 props in ImageRecord
+	 * @param r ImageRecord containing absolute file path of JPEG 2000 image file.
+	 * @return a populated ImageRecord object
 	 * @throws DjatokaException
 	 */
-	public final Integer[] getMetadata(String input) throws DjatokaException {
-		if (!new File(input).exists())
-			throw new DjatokaException("Image Does Not Exist"); 
+	public final ImageRecord getMetadata(ImageRecord r) throws DjatokaException {
+		if (!new File(r.getImageFile()).exists())
+			throw new DjatokaException("Image Does Not Exist");
 		
 		Jp2_source inputSource = new Jp2_source();
 		Kdu_compressed_source kduIn = null;
 		Jp2_family_src jp2_family_in = new Jp2_family_src();
 		Jp2_locator loc = new Jp2_locator();
-		Integer[] dims = new Integer[3];
+
 		try {
-			jp2_family_in.Open(input, true);
+			jp2_family_in.Open(r.getImageFile(), true);
 			inputSource.Open(jp2_family_in, loc);
 			inputSource.Read_header();
 			kduIn = inputSource;
@@ -81,13 +81,14 @@ public class KduExtractJNI implements IExtract {
 				channels.Configure(codestream);
 			int ref_component = channels.Get_source_component(0);
 			int minLevels = codestream.Get_min_dwt_levels();
+			int minLayers= codestream.Get_max_tile_layers();
 			Kdu_dims image_dims = new Kdu_dims();
 			codestream.Get_dims(ref_component, image_dims);
 			Kdu_coords imageSize = image_dims.Access_size();
-
-			dims[0] = imageSize.Get_x();
-			dims[1] = imageSize.Get_y();
-			dims[2] = minLevels;
+			
+			r.setWidth(imageSize.Get_x());
+			r.setHeight(imageSize.Get_y());
+			r.setLevels(minLevels);
 
 			channels.Native_destroy();
 			if (codestream.Exists())
@@ -99,9 +100,72 @@ public class KduExtractJNI implements IExtract {
 			throw new DjatokaException(e);
 		}
 
-		return dims;
+		return r;
 	}
 
+	/**
+	 * Returns JPEG 2000 XML Box data in String[]
+	 * @param input absolute file path of JPEG 2000 image file.
+	 * @return an array of XML box values
+	 * @throws DjatokaException
+	 */
+	public final String[] getXMLBox(String input) throws DjatokaException {
+		if (!new File(input).exists())
+			throw new DjatokaException("Image Does Not Exist");
+
+		ArrayList<String> xmlList = null;
+		Jp2_family_src jp2_family_in = new Jp2_family_src();
+		Jp2_locator loc = new Jp2_locator();
+		Jp2_input_box box = new Jp2_input_box();
+		String[] values = null;
+		try {
+			jp2_family_in.Open(input, true);
+			box.Open(jp2_family_in, loc);
+			while (box != null && box.Get_box_bytes() > 0) {
+				int x = (int) box.Get_box_type();
+				String t = getType(x);
+				if (t.startsWith("xml")) {
+					if (xmlList == null)
+						xmlList = new ArrayList<String>();
+					String tmp = new String(getEntry(box));
+					xmlList.add(tmp);
+				    box.Close();
+				} else {
+					box.Close();
+					box.Open_next();
+				}
+			}
+		} catch (KduException e) {
+			throw new DjatokaException(e);
+		} finally {
+			jp2_family_in.Native_destroy();
+		}
+
+		if (xmlList != null)
+			values = new String[xmlList.size()];
+			xmlList.toArray(values);
+		
+		return values;
+	}
+
+	private static byte[] getEntry(final Jp2_input_box box) throws KduException {
+	    final int n = (int) box.Get_box_bytes();
+	    final byte[] b = new byte[n];
+	    int r = box.Read(b, n);
+	    final byte[] out = new byte[r];
+	    System.arraycopy(b, 0, out, 0, r);
+	    return out;
+	}
+	
+	private static String getType(int type) {
+        byte[] buf = new byte[4];
+        for (int i = 3; i >= 0; i--) {
+            buf[i] = (byte) (type & 0xFF);
+            type >>>= 8;
+        }
+        return new String(buf);
+    }
+	
 	/**
 	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
 	 * @param input absolute file path of JPEG 2000 image file.

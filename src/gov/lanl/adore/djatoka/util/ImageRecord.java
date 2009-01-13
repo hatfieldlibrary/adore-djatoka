@@ -36,6 +36,10 @@ public class ImageRecord {
 	private int width;
 	private int height;
 	private int levels;
+	private int qualityLayers;
+	private int compositingLayers;
+	private int bitDepth;
+	private int numChannels;
 	private HashMap<String, String> instProps;
 	
 	/**
@@ -157,5 +161,69 @@ public class ImageRecord {
 	 */
 	public void setInstProps(HashMap<String, String> instProps) {
 		this.instProps = instProps;
+	}
+
+	/**
+	 * Gets the number of JPEG2000 quality layers
+	 * @return the number of quality layers
+	 */
+	public int getQualityLayers() {
+		return qualityLayers;
+	}
+
+	/**
+	 * Sets the number of JPEG2000 quality layers
+	 * @param layers the number of quality layers
+	 */
+	public void setQualityLayers(int layers) {
+		this.qualityLayers = layers;
+	}
+
+	/**
+	 * Gets the number of JPEG2000 jpx compositing layers, also known as frames
+	 * @return the number of frames
+	 */
+	public int getCompositingLayerCount() {
+		return compositingLayers;
+	}
+
+	/**
+	 * Sets the number of JPEG2000 jpx compositing layers, also known as frames
+	 * @param frames the number of frames
+	 */
+	public void setCompositingLayerCount(int frames) {
+		this.compositingLayers = frames;
+	}
+
+	/**
+	 * Gets the bit depth (e.g. 8) for each color channel
+	 * @return the bit depth for each channel
+	 */
+	public int getBitDepth() {
+		return bitDepth;
+	}
+
+	/**
+	 * Sets the bit depth (e.g. 8) for each color channel
+	 * @param bitDepth the bit depth for each channel
+	 */
+	public void setBitDepth(int bitDepth) {
+		this.bitDepth = bitDepth;
+	}
+
+	/**
+	 * Gets the number of color channels (e.g. 3 for RGB)
+	 * @return the number of color channels
+	 */
+	public int getNumChannels() {
+		return numChannels;
+	}
+
+	/**
+	 * Sets the number of color channels (e.g. 3 for RGB)
+	 * @param numChannels the number of color channels
+	 */
+	public void setNumChannels(int numChannels) {
+		this.numChannels = numChannels;
 	}
 }

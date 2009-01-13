@@ -24,7 +24,7 @@
 
   <!-- environment variables -->
   <property environment="env"/>
-  <property name="version" value="1.0" />
+  <property name="version" value="1.1" />
 
   <!-- source/build directory -->
   <property name="bin.dir"      value="${basedir}/bin"/>
@@ -95,6 +95,7 @@
         </lib>
         <lib dir="${lib.dir}">
           <include name="*.jar"/>
+          <exclude name="servlet-api.jar"/>
         </lib>
     </war>
     <tar destfile="adore-djatoka-${version}.tar.gz" compression="gzip" >

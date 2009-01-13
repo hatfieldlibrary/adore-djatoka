@@ -27,6 +27,7 @@ import gov.lanl.adore.djatoka.io.FormatFactory;
 import gov.lanl.adore.djatoka.io.FormatWriterParams;
 import gov.lanl.adore.djatoka.io.IWriter;
 import gov.lanl.adore.djatoka.util.IOUtils;
+import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -154,6 +155,8 @@ public class DjatokaExtractProcessor {
 
 		BufferedImage bi = extractImpl.process(input, params);
 		if (bi != null) {
+			if (params.getScalingFactor() != 1.0 || params.getScalingDimensions() != null)
+				bi = applyScaling(bi, params);
 			if (params.getTransform() != null)
 				bi = params.getTransform().run(bi);
 			try {
@@ -200,6 +203,8 @@ public class DjatokaExtractProcessor {
 
 		BufferedImage bi = extractImpl.process(input, params);
 		if (bi != null) {
+			if (params.getScalingFactor() != 1.0 || params.getScalingDimensions() != null)
+				bi = applyScaling(bi, params);
 			if (params.getTransform() != null)
 				bi = params.getTransform().run(bi);
 			w.write(bi, os);
@@ -221,9 +226,37 @@ public class DjatokaExtractProcessor {
 			DjatokaDecodeParam params, IWriter w) throws DjatokaException {
 		BufferedImage bi = extractImpl.process(input, params);
 		if (bi != null) {
+			if (params.getScalingFactor() != 1.0 || params.getScalingDimensions() != null)
+				bi = applyScaling(bi, params);
 			if (params.getTransform() != null)
 				bi = params.getTransform().run(bi);
 			w.write(bi, os);
 		}
+	}
+	
+	/**
+	 * Apply scaling, if Scaling Factor != to 1.0 then check ScalingDimensions 
+	 * for w,h vars.  A scaling factor value must be greater than 0 and less than 2.
+	 * Note that ScalingFactor overrides ScalingDimensions.
+	 * @param bi BufferedImage to be scaled.
+	 * @param params DjatokaDecodeParam containing ScalingFactor or ScalingDimensions vars
+	 * @return scaled instance of provided BufferedImage
+	 */
+	private static BufferedImage applyScaling(BufferedImage bi, DjatokaDecodeParam params) {
+		if (params.getScalingFactor() != 1.0 
+				&& params.getScalingFactor() > 0 
+				&& params.getScalingFactor() < 2)
+			bi = ImageProcessingUtils.scale(bi,params.getScalingFactor());
+		else if (params.getScalingDimensions() != null 
+				&& params.getScalingDimensions().length == 2) {
+			int width = params.getScalingDimensions()[0];
+			if (width >= 2 * bi.getWidth())
+				return bi;
+			int height = params.getScalingDimensions()[1];
+			if (height >= 2 * bi.getHeight())
+				return bi;
+			bi = ImageProcessingUtils.scale(bi, width, height);
+		}
+		return bi;
 	}
 }

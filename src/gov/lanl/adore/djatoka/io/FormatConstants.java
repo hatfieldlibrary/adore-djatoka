@@ -49,11 +49,23 @@ public interface FormatConstants {
 	public static final String FORMAT_ID_TIF= "tif";
 	/** GIF Identifier Constant - "gif" */
 	public static final String FORMAT_ID_GIF= "gif";
+	/** Additional JPEG 2000 Identifiers */
+	public static final String FORMAT_ID_JPF = "jpf";
+	public static final String FORMAT_ID_JPX = "jpx";
+	public static final String FORMAT_ID_J2K = "j2k";
+	public static final String FORMAT_ID_JPM = "jpm";
+	public static final String FORMAT_ID_J2C = "j2c";
+	public static final String FORMAT_ID_JPC = "jpc";
+	
 	// Mimetypes for supported image formats
 	/** JPEG Mimetype Constant - "image/jpeg" */
 	public static final String FORMAT_MIMEYPE_JPEG = "image/jpeg";
 	/** JP2 Mimetype Constant - "image/jp2" */
 	public static final String FORMAT_MIMEYPE_JP2 = "image/jp2";
+	/** JPX Mimetype Constant - "image/jpx" */
+	public static final String FORMAT_MIMEYPE_JPX = "image/jpx";
+	/** JPM Mimetype Constant - "image/jpm" */
+	public static final String FORMAT_MIMEYPE_JPM = "image/jpm";
 	/** PNG Mimetype Constant - "image/png" */
 	public static final String FORMAT_MIMEYPE_PNG = "image/png";
 	/** BMP Mimetype Constant - "image/bmp" */
@@ -83,4 +95,5 @@ public interface FormatConstants {
 	public static final String DEFAULT_TIFF_WRITER = "gov.lanl.adore.djatoka.io.writer.TIFWriter";
 	/** Default GIF Writer - "gov.lanl.adore.djatoka.io.writer.GIFWriter" */
 	public static final String DEFAULT_GIF_WRITER = "gov.lanl.adore.djatoka.io.writer.GIFWriter";
+	
 }

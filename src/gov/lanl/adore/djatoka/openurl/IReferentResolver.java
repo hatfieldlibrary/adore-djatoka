@@ -23,6 +23,7 @@
 
 package gov.lanl.adore.djatoka.openurl;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 import gov.lanl.adore.djatoka.util.ImageRecord;
@@ -52,6 +53,14 @@ public interface IReferentResolver {
 	 * @throws ResolverException
 	 */
 	public ImageRecord getImageRecord(Referent rft) throws ResolverException;
+	
+	/**
+	 * Returns list of available image records, ideally should be returned in 
+	 * most recently accessed order.
+	 * @param cnt limit list to top n ImageRecords
+	 * @return list of available image records available
+	 */
+	public ArrayList<ImageRecord> getImageRecordList(int cnt);
 	
 	/**
 	 * Sets a Properties object that may be used by underlying implementation

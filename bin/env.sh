@@ -36,7 +36,7 @@ else
   exit
 fi
 
-KAKADU_HOME=$DJATOKA_HOME/bin/$PLATFORM
+export KAKADU_HOME=$DJATOKA_HOME/bin/$PLATFORM
 cd $LAUNCHDIR
 for line in `ls -1 $LIBPATH | grep '.jar'`
   do

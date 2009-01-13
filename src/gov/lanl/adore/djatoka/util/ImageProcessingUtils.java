@@ -23,7 +23,16 @@
 
 package gov.lanl.adore.djatoka.util;
 
+import gov.lanl.adore.djatoka.io.FormatConstants;
+import ij.io.Opener;
+
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Image Processing Utilities
@@ -94,5 +103,89 @@ public class ImageProcessingUtils {
 			}
 		}
 		return r;
+	}
+	
+	/**
+	 * Scale provided BufferedImage by the provided factor.
+	 * A scaling factor value should be greater than 0 and less than 2.
+	 * Note that scaling will impact performance and image quality.
+	 * @param bi BufferedImage to be scaled.
+	 * @param scale positive scaling factor
+	 * @return scaled instance of provided BufferedImage
+	 */
+	public static BufferedImage scale(BufferedImage bi, double scale) {
+		int w = (int)Math.ceil(bi.getWidth() * scale);
+		int h = (int)Math.ceil(bi.getHeight() * scale);
+		return scale(bi, w, h);
+	}	
+	
+	/**
+	 * Scale provided BufferedImage to the specified width and height dimensions.
+	 * If a provided dimension is 0, the aspect ratio is used to calculate a value.
+	 * @param bi BufferedImage to be scaled.
+	 * @param w width the image is to be scaled to.
+	 * @param h height the image is to be scaled to.
+	 * @return scaled instance of provided BufferedImage
+	 */
+    public static BufferedImage scale(BufferedImage bi, int w, int h) {
+    	if (w == 0 || h == 0) {
+    		if (w == 0 && h == 0)
+    			return bi;
+    		if (w == 0) {
+    			double n = new Double(h) / new Double(bi.getHeight());
+    		    w = (int)Math.ceil(bi.getWidth() * n);
+    		}
+    		if (h == 0) {
+    			double n = new Double(w) / new Double(bi.getWidth());
+    		    h = (int)Math.ceil(bi.getHeight() * n);
+    		}
+    	}
+		final Image scaledImage = bi.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+		final int type = (bi.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
+		BufferedImage bImg = new BufferedImage(w, h, type);
+		Graphics2D graphics = bImg.createGraphics();
+		graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		graphics.drawImage(scaledImage, null, null);
+		graphics.dispose();
+		scaledImage.flush();
+		bi.flush();
+		return bImg;
+	}
+    
+	private static final String magic = "000c6a502020da87a";
+	
+	/**
+	 * Read first 12 bytes from InputStream to determine if JP2 file.
+	 * Note: Be sure to reset your stream after calling this method.
+	 * @param in InputStream of possible JP2 codestream
+	 * @return true is JP2 compatible format
+	 */
+	public final static boolean checkIfJp2(InputStream in) {
+    	byte[] buf = new byte[12];
+        try {
+            in.read(buf, 0, 12);
+        } catch (IOException e) {
+                e.printStackTrace();
+                return false;
+        } 
+	    StringBuffer sb = new StringBuffer(buf.length * 2);
+	    for(int x = 0 ; x < buf.length ; x++) {
+	       sb.append((Integer.toHexString(0xff & buf[x])));
+	    }
+	    String hexString = sb.toString();
+	    return hexString.equals(magic);
+	}
+	
+	public final static boolean isJp2Type(String mimetype) {
+		if (mimetype == null)
+			return false;
+		if (mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JP2)
+			|| mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JPX)
+			|| mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JPM))
+			return true;
+		else
+			return false;
+			
 	}
 }

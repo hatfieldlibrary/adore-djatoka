@@ -23,6 +23,8 @@
 
 package gov.lanl.adore.djatoka;
 
+import gov.lanl.adore.djatoka.util.ImageRecord;
+
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
@@ -56,13 +58,18 @@ public interface IExtract {
 
 	/**
 	 * Returns JPEG 2000 width, height, resolution levels in Integer[]
-	 * 		int[0] = Image Width;
-	 *		int[1] = Image Height;
-     *		int[2] = Number of Resolution Levels;
-	 * @param input absolute file path of JPEG 2000 image file.
-	 * @return width,height,DWT levels of image
+	 * @param  input ImageRecord containing absolute file path of JPEG 2000 image file.
+	 * @return a populated ImageRecord object containing width,height,DWT levels of image
 	 * @throws DjatokaException
 	 */
-	public Integer[] getMetadata(String input) throws DjatokaException;
+	public ImageRecord getMetadata(ImageRecord input) throws DjatokaException;
+	
+	/**
+	 * Returns JPEG 2000 XML Box data in String[]
+	 * @param input absolute file path of JPEG 2000 image file.
+	 * @return an array of XML box values
+	 * @throws DjatokaException
+	 */
+	public String[] getXMLBox(String input) throws DjatokaException;
 
 }

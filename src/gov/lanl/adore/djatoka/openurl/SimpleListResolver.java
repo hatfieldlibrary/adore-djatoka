@@ -28,7 +28,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Properties;
 
 import gov.lanl.adore.djatoka.util.ImageRecord;
@@ -47,7 +48,7 @@ import info.openurl.oom.entities.Referent;
  */
 public class SimpleListResolver implements IReferentResolver {
 	private static final String PROP_IMGS_INDEX = "SimpleListResolver.imgIndexFile";
-	private static HashMap<String, ImageRecord> imgs;
+	private static LinkedHashMap<String, ImageRecord> imgs;
 	private static DjatokaImageMigrator dim = new DjatokaImageMigrator();
 	
 	/**
@@ -96,6 +97,29 @@ public class SimpleListResolver implements IReferentResolver {
 		}
 		return ir;
 	}
+	
+	/**
+	 * Returns list of available image records, ideally should be returned in 
+	 * most recently accessed order.
+	 * @param cnt limit list to top n ImageRecords
+	 * @return list of available image records available
+	 */
+	public ArrayList<ImageRecord> getImageRecordList(int cnt) {
+		if (cnt >= imgs.size())
+			return new ArrayList<ImageRecord>(imgs.values());
+		else {
+		    ArrayList<ImageRecord> l = new ArrayList<ImageRecord>();
+		    int i = 0;
+		    for (ImageRecord rec : imgs.values()) {
+		    	if (rec != null && i < cnt) {
+		    		l.add(rec);
+		    		i++;
+		    	} else
+		    		return l;
+		    }
+		}
+		return null;
+	}
 
 	/**
 	 * Sets a Properties object that may be used by underlying implementation
@@ -115,8 +139,8 @@ public class SimpleListResolver implements IReferentResolver {
 		}
 	}
 	
-	private static HashMap<String, ImageRecord> getRecordMap(String f) throws Exception {
-		HashMap<String, ImageRecord> map = new HashMap<String, ImageRecord>();
+	private static LinkedHashMap<String, ImageRecord> getRecordMap(String f) throws Exception {
+		LinkedHashMap<String, ImageRecord> map = new LinkedHashMap<String, ImageRecord>(16, 0.75f, true);
 		BufferedReader reader = new BufferedReader(new FileReader(f));
 		String row = null;
 		for (int line = 0; true; line++) {

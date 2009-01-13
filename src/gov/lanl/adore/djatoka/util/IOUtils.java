@@ -90,18 +90,23 @@ public class IOUtils {
 	}
 	
     public static InputStream getInputStream(URL location) throws Exception {
-        InputStream in;
-        try {
-            HttpURLConnection huc = (HttpURLConnection) (location.openConnection());
-            int code = huc.getResponseCode();
-            if (code == 200) {
-                in = huc.getInputStream();
-            } else
-                throw new Exception("Cannot get " + location.toString());
-        } catch (MalformedURLException e) {
-            throw new Exception("A MalformedURLException occurred for " + location.toString());
-        } catch (IOException e) {
-            throw new Exception("An IOException occurred attempting to connect to " + location.toString());
+        InputStream in = null;
+        if (location.getProtocol().equals("file")) {
+        	in = new BufferedInputStream(new FileInputStream(location.getFile()));
+        } else {
+			try {
+				HttpURLConnection huc = (HttpURLConnection) (location.openConnection());
+				int code = huc.getResponseCode();
+				if (code == 200) {
+					in = huc.getInputStream();
+				} else
+					throw new Exception("Cannot get " + location.toString());
+			} catch (MalformedURLException e) {
+				throw new Exception("A MalformedURLException occurred for " + location.toString());
+			} catch (IOException e) {
+				throw new Exception(
+						"An IOException occurred attempting to connect to " + location.toString());
+			}
         }
         return in;
     }
@@ -111,7 +116,7 @@ public class IOUtils {
     }
     
     public static OutputStream getOutputStream(InputStream ins) throws java.io.IOException, Exception {
-        return getOutputStream(ins, 4096);
+        return getOutputStream(ins, 1024 * 4);
     }
     
     public static OutputStream getOutputStream(InputStream ins, int bufferSize) throws java.io.IOException, Exception {
