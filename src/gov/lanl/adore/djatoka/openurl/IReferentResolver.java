@@ -55,14 +55,6 @@ public interface IReferentResolver {
 	public ImageRecord getImageRecord(Referent rft) throws ResolverException;
 	
 	/**
-	 * Returns list of available image records, ideally should be returned in 
-	 * most recently accessed order.
-	 * @param cnt limit list to top n ImageRecords
-	 * @return list of available image records available
-	 */
-	public ArrayList<ImageRecord> getImageRecordList(int cnt);
-	
-	/**
 	 * Sets a Properties object that may be used by underlying implementation
 	 * @param props Properties object for use by implementation
 	 * @throws ResolverException

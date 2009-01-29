@@ -56,7 +56,7 @@ import javax.servlet.http.HttpServletResponse;
 public class OpenURLJP2XML implements Service, FormatConstants {
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_KEY_IMPL_CLASS = "OpenURLJP2KService.referentResolverImpl";
-	private static final String SVC_ID = "info:lanl-repo/svc/getXML";
+	private static final String SVC_ID = "info:lanl-repo/svc/getJP2XML";
 	
 	private static String implClass = null;
 	private static Properties props = new Properties();

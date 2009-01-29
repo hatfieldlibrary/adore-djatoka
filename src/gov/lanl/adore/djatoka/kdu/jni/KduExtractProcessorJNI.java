@@ -85,11 +85,11 @@ public class KduExtractProcessorJNI {
 		this.params = params;
 	}
 	
-	public DjatokaDecodeParam getJPEG2KDecodeParam() {
+	public DjatokaDecodeParam getDjatokaDecodeParam() {
 		return params;
 	}
 
-	public void setJPEG2KDecodeParam(DjatokaDecodeParam params) {
+	public void setDjatokaDecodeParam(DjatokaDecodeParam params) {
 		this.params = params;
 	}
 

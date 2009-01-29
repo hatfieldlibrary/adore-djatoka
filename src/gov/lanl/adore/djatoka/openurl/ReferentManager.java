@@ -41,6 +41,10 @@ public class ReferentManager {
 	private static boolean init = false;
 	private static IReferentResolver rftResolver;
 
+	public static IReferentResolver getResolver() {
+		return rftResolver;
+	}
+
 	public static boolean isInit() {
 		return init;
 	}
@@ -51,10 +55,6 @@ public class ReferentManager {
 	
     public static ImageRecord getImageRecord(String rft) throws ResolverException {
     	return rftResolver.getImageRecord(rft);
-    }
-    
-    public static ArrayList<ImageRecord> getImageRecordList(int cnt) {
-    	return rftResolver.getImageRecordList(cnt);
     }
     
     public static void init(IReferentResolver referentResolver, Properties props) throws ResolverException {

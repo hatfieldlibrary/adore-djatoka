@@ -99,10 +99,9 @@ public class SimpleListResolver implements IReferentResolver {
 	}
 	
 	/**
-	 * Returns list of available image records, ideally should be returned in 
-	 * most recently accessed order.
+	 * Returns list of most recently requested images in accessed order.
 	 * @param cnt limit list to top n ImageRecords
-	 * @return list of available image records available
+	 * @return list of requested image records
 	 */
 	public ArrayList<ImageRecord> getImageRecordList(int cnt) {
 		if (cnt >= imgs.size())

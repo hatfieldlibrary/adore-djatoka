@@ -374,6 +374,59 @@ public class KduExtractExe implements IExtract {
 		return r;
 	}
 	
+	public final ImageRecord getMetadata(final InputStream is, boolean layerInfo) throws DjatokaException {
+		ImageRecord r = new ImageRecord();
+		KduCompressedSource comp_src = null;
+		try {
+			comp_src = new KduCompressedSource(IOUtils.getByteArray(is));
+		} catch (Exception e) {
+			throw new DjatokaException(e);
+		}
+		Jpx_source inputSource = new Jpx_source();
+		Jp2_family_src jp2_family_in = new Jp2_family_src();
+		
+		int ref_component = 0;
+		try {
+			jp2_family_in.Open(comp_src);
+			inputSource.Open(jp2_family_in, true);
+			Kdu_codestream codestream = new Kdu_codestream();
+			codestream.Create(inputSource.Access_codestream(ref_component).Open_stream());
+
+			int minLevels = codestream.Get_min_dwt_levels();
+			int depth = codestream.Get_bit_depth(ref_component);
+			int colors = codestream.Get_num_components();
+			//int[] frames = new int[1];
+			//inputSource.Count_compositing_layers(frames);
+			Kdu_dims image_dims = new Kdu_dims();
+			codestream.Get_dims(ref_component, image_dims);
+			Kdu_coords imageSize = image_dims.Access_size();
+			
+			r.setWidth(imageSize.Get_x());
+			r.setHeight(imageSize.Get_y());
+			r.setLevels(minLevels);
+			r.setBitDepth(depth);
+			r.setNumChannels(colors);
+			//r.setCompositingLayerCount(frames[0]);
+			
+			int[] v = new int[1];
+			Kdu_params p = codestream.Access_siz().Access_cluster("COD");
+			if (p != null) {
+			    p.Get(Kdu_global.Clayers,0,0,v,true, true, true);
+			    if (v[0] > 0)
+			        r.setQualityLayers(v[0]);
+			}
+			
+			if (codestream.Exists())
+				codestream.Destroy();
+			inputSource.Native_destroy();
+			jp2_family_in.Native_destroy();
+		} catch (KduException e) {
+			throw new DjatokaException(e);
+		}
+
+		return r;
+	}
+	
 	/**
 	 * Returns JPEG 2000 XML Box data in String[]
 	 * @param input absolute file path of JPEG 2000 image file.
