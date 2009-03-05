@@ -262,6 +262,12 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 				status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 			}
 		}
+		if (bytes == null || bytes.length == 0) {
+		    bytes = "".getBytes();
+			responseFormat = "text/plain";
+			status = HttpServletResponse.SC_NOT_FOUND;
+		}
+		
 		HashMap<String, String> header_map = new HashMap<String, String>();
 		header_map.put("Content-Length", bytes.length + "");
 		header_map.put("Date", HttpDate.getHttpDate());
