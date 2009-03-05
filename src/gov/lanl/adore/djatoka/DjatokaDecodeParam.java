@@ -28,7 +28,7 @@ import gov.lanl.adore.djatoka.plugin.ITransformPlugIn;
 /**
  * Decode Parameters for djatoka extraction. Defines extraction 
  * parameters (i.e. region, rotate, level, transform plug-in) to 
- * be performed during extaction of JP2.
+ * be performed during extraction of JP2.
  * @author Ryan Chute
  *
  */

@@ -583,7 +583,7 @@ public class KduExtractExe implements IExtract {
 			int reduce = levels - params.getLevel();
 			params.setLevelReductionFactor((reduce >= 0) ? reduce : 0);
 		}
-
+		
 		int reduce = 1 << params.getLevelReductionFactor();
 		ArrayList<Double> dims = new ArrayList<Double>();
 
@@ -593,13 +593,21 @@ public class KduExtractExe implements IExtract {
 			// top
 			if ((token = st.nextToken()).contains("."))
 				dims.add(Double.parseDouble(token));
-			else
+			else {
+				int t = Integer.parseInt(token);
+				if (r.getHeight() < t)
+					throw new DjatokaException("Region inset out of bounds: " + t  + ">" + r.getHeight());
 				dims.add(Double.parseDouble(token) / r.getHeight());
+			}
 			// left
 			if ((token = st.nextToken()).contains(".")) {
 				dims.add(Double.parseDouble(token));
-			} else
+			} else {
+				int t = Integer.parseInt(token);
+				if (r.getWidth() < t)
+					throw new DjatokaException("Region inset out of bounds: " + t  + ">" + r.getWidth());
 				dims.add(Double.parseDouble(token) / r.getWidth());
+			}
 			// height
 			if ((token = st.nextToken()).contains(".")) {
 				dims.add(Double.parseDouble(token));

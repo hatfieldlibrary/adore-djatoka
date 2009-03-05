@@ -24,6 +24,7 @@
 package gov.lanl.adore.djatoka.openurl;
 
 import gov.lanl.adore.djatoka.DjatokaDecodeParam;
+import gov.lanl.adore.djatoka.DjatokaException;
 import gov.lanl.adore.djatoka.DjatokaExtractProcessor;
 import gov.lanl.adore.djatoka.io.FormatConstants;
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
@@ -197,48 +198,66 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 		} else {
 			try {
 				ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
-				if (transformCheck && transform != null) {
-					HashMap<String, String> instProps = new HashMap<String, String>();
-				    if (r.getInstProps() != null)
-				    	instProps.putAll(r.getInstProps());
-					if (contextObject.getRequesters().length > 0 && contextObject.getRequesters()[0].getDescriptors().length > 0)
-					    instProps.put(PROPS_REQUESTER, contextObject.getRequesters()[0].getDescriptors()[0].toString());
-				    if (contextObject.getReferringEntities().length > 0 && contextObject.getReferringEntities()[0].getDescriptors().length > 0)
-					    instProps.put(PROPS_REFERRING_ENTITY, contextObject.getReferringEntities()[0].getDescriptors()[0].toString());
-					if (instProps.size() > 0)
-					    transform.setInstanceProps(instProps);
-					params.setTransform(transform);	
-				}
-				if (!cacheTiles || !isCacheable(params)) {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					extractor.extractImage(r.getImageFile(), baos, params, format);
-				    bytes = baos.toByteArray();
-				    baos.close();
-				} else {
-					String ext = getExtension(format);
-					String hash = getTileHash(r, params);
-					String file = null;
-					if ((file = tileCache.get(hash+ext)) == null) {
-						File f;
-						if (cacheDir != null)
-							f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext, new File(cacheDir));
-						else
-						    f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext);
-						f.deleteOnExit();
-						file = f.getAbsolutePath();
-						extractor.extractImage(r.getImageFile(), file, params, format);
-						bytes = IOUtils.getBytesFromFile(f);
-						tileCache.put(hash+ext, file);
+				if (r != null) {
+					if (transformCheck && transform != null) {
+						HashMap<String, String> instProps = new HashMap<String, String>();
+						if (r.getInstProps() != null)
+							instProps.putAll(r.getInstProps());
+						if (contextObject.getRequesters().length > 0
+								&& contextObject.getRequesters()[0]
+										.getDescriptors().length > 0)
+							instProps.put(PROPS_REQUESTER, contextObject
+									.getRequesters()[0].getDescriptors()[0]
+									.toString());
+						if (contextObject.getReferringEntities().length > 0
+								&& contextObject.getReferringEntities()[0]
+										.getDescriptors().length > 0)
+							instProps.put(PROPS_REFERRING_ENTITY,
+									contextObject.getReferringEntities()[0]
+											.getDescriptors()[0].toString());
+						if (instProps.size() > 0)
+							transform.setInstanceProps(instProps);
+						params.setTransform(transform);
+					}
+					if (!cacheTiles || !isCacheable(params)) {
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						extractor.extractImage(r.getImageFile(), baos, params, format);
+						bytes = baos.toByteArray();
+						baos.close();
 					} else {
-						bytes = IOUtils.getBytesFromFile(new File(file));
+						String ext = getExtension(format);
+						String hash = getTileHash(r, params);
+						String file = null;
+						if ((file = tileCache.get(hash + ext)) == null) {
+							File f;
+							if (cacheDir != null)
+								f = File.createTempFile("cache"
+										+ hash.hashCode() + "-", "." + ext,
+										new File(cacheDir));
+							else
+								f = File.createTempFile("cache"
+										+ hash.hashCode() + "-", "." + ext);
+							f.deleteOnExit();
+							file = f.getAbsolutePath();
+							extractor.extractImage(r.getImageFile(), file,
+									params, format);
+							bytes = IOUtils.getBytesFromFile(f);
+							tileCache.put(hash + ext, file);
+						} else {
+							bytes = IOUtils.getBytesFromFile(new File(file));
+						}
 					}
 				}
+			} catch (ResolverException e) {
+			    bytes = e.getMessage().getBytes();
+				responseFormat = "text/plain";
+				status = HttpServletResponse.SC_NOT_FOUND;
+			} catch (DjatokaException e) {
+			    bytes = e.getMessage().getBytes();
+				responseFormat = "text/plain";
+				status = HttpServletResponse.SC_NOT_FOUND;
 			} catch (Exception e) {
-				try {
-					bytes = e.getMessage().getBytes("UTF-8");
-				} catch (UnsupportedEncodingException e1) {
-					e1.printStackTrace();
-				}
+			    bytes = e.getMessage().getBytes();
 				responseFormat = "text/plain";
 				status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 			}
