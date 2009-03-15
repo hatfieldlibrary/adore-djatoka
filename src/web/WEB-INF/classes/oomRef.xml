@@ -28,8 +28,16 @@
                 </service>
         </serviceMap>
         <serviceMap>
-                <service ID="info:lanl-repo/svc/getXML">
+                <service ID="info:lanl-repo/svc/getJP2XML">
                         <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2XML</className>
+                        <args>
+                                <props>OpenURLJP2KService.properties</props>
+                        </args>
+                </service>
+        </serviceMap>
+        <serviceMap>
+                <service ID="info:lanl-repo/svc/ping">
+                        <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2Ping</className>
                         <args>
                                 <props>OpenURLJP2KService.properties</props>
                         </args>

@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 
+import javax.servlet.http.HttpServletResponse;
+
 import gov.lanl.adore.djatoka.util.ImageRecord;
 import info.openurl.oom.entities.Referent;
 
@@ -49,7 +51,7 @@ import info.openurl.oom.entities.Referent;
 public class SimpleListResolver implements IReferentResolver {
 	private static final String PROP_IMGS_INDEX = "SimpleListResolver.imgIndexFile";
 	private static LinkedHashMap<String, ImageRecord> imgs;
-	private static DjatokaImageMigrator dim = new DjatokaImageMigrator();
+	private static IReferentMigrator dim = new DjatokaImageMigrator();
 	
 	/**
 	 * Referent Identifier to be resolved from Identifier Resolver. The returned
@@ -136,6 +138,19 @@ public class SimpleListResolver implements IReferentResolver {
 		} catch (Exception e) {
 			throw new ResolverException(e);
 		}
+	}
+
+	public IReferentMigrator getReferentMigrator() {
+		return dim;
+	}
+	
+	public int getStatus(String rftId) {
+		if (imgs.get(rftId) != null)
+			return HttpServletResponse.SC_OK;
+		else if (dim.getProcessingList().contains(rftId))
+			return HttpServletResponse.SC_ACCEPTED;
+		else
+			return HttpServletResponse.SC_NOT_FOUND;
 	}
 	
 	private static LinkedHashMap<String, ImageRecord> getRecordMap(String f) throws Exception {

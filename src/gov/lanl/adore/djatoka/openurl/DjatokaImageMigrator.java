@@ -41,13 +41,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Utility class used to harvest URIs and compress files into JP2
  * @author Ryan Chute
  *
  */
-public class DjatokaImageMigrator implements FormatConstants {
+public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator {
 	private ArrayList<String> processing = new ArrayList<String>();
 	private HashMap<String, String> formatMap;
 	
@@ -76,7 +77,7 @@ public class DjatokaImageMigrator implements FormatConstants {
 	}
 	
 	/**
-	 * Returns a Delete On Exit Temp JP2 File object for a provide URI
+	 * Returns a delete on exit File object for a provide URI
 	 * @param uri the URI of an image to be downloaded and compressed as JP2
 	 * @return File object of JP2 compressed image
 	 * @throws DjatokaException
@@ -129,13 +130,13 @@ public class DjatokaImageMigrator implements FormatConstants {
 		} catch (Exception e) {
 			throw new DjatokaException(e);
 		} finally {
-			if (processing.contains(uri))
-				processing.remove(uri);
+			if (processing.contains(uri.toString()))
+				processing.remove(uri.toString());
 		}
 	}
 	
 	/**
-	 * Returns a Delete On Exit Temp JP2 File object for a provide URI
+	 * Returns a delete on exit File object for a provide URI
 	 * @param img File object on local image to be compressed
 	 * @param uri the URI of an image to be compressed as JP2
 	 * @return File object of JP2 compressed image
@@ -167,10 +168,10 @@ public class DjatokaImageMigrator implements FormatConstants {
 	}
 
 	/**
-	 * Return list of images currently being processed. Images are removed once complete.
+	 * Return a unmodifiable list of images currently being processed. Images are removed once complete.
 	 * @return list of images being processed
 	 */
-	public ArrayList<String> getProcessingList() {
+	public List<String> getProcessingList() {
 		return processing;
 	}
 
@@ -195,7 +196,7 @@ public class DjatokaImageMigrator implements FormatConstants {
 		try {
 			long a = System.currentTimeMillis();
 			uri = new URI(args[0]);
-			DjatokaImageMigrator dim = new DjatokaImageMigrator();
+			IReferentMigrator dim = new DjatokaImageMigrator();
 			File f = dim.convert(uri);
 			System.out.println((System.currentTimeMillis() - a) +  ": " + f.getAbsolutePath());
 		} catch (URISyntaxException e) {

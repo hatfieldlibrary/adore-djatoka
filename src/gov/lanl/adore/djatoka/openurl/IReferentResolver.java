@@ -60,4 +60,14 @@ public interface IReferentResolver {
 	 * @throws ResolverException
 	 */
 	public void setProperties(Properties props) throws ResolverException;
+	
+	/**
+	 * Gets the djatoka HttpServletResponse status for the requested resource
+	 */
+	public int getStatus(String rftId);
+	
+	/**
+	 * Gets the resolver's active resource migrator.
+	 */
+	public IReferentMigrator getReferentMigrator();
 }
