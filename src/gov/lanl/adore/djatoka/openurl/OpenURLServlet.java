@@ -31,6 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.log4j.Logger;
+
 /**
  * OpenURL Servlet - Added referrer and requester to Context Object
  * 
@@ -38,6 +40,7 @@ import javax.servlet.http.HttpSession;
  * @author Ryan Chute
  */
 public class OpenURLServlet extends HttpServlet {
+	static Logger logger = Logger.getLogger(DjatokaImageMigrator.class);
     /**
      * Initial version
      */
@@ -153,9 +156,10 @@ public class OpenURLServlet extends HttpServlet {
                 out.close();
                 break;
             }
-        } catch (SocketException e) { 
+        } catch (SocketException e) {
+        	logger.error(e);
         } catch (Throwable e) {
-            e.printStackTrace();
+        	logger.debug(e);
         	//throw new ServletException(e.getMessage(), e);
             resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }

@@ -34,13 +34,15 @@ import java.util.Properties;
 
 import javax.imageio.ImageIO;
 
+import org.apache.log4j.Logger;
+
 /**
  * PNG File Writer. Uses JAI Image I/O to write BufferedImage as PNG
  * @author Ryan Chute
  *
  */
 public class PNGWriter implements IWriter {
-	
+	static Logger logger = Logger.getLogger(PNGWriter.class);
 	/**
 	 * Write a BufferedImage instance using implementation to the 
 	 * provided OutputStream.
@@ -55,7 +57,7 @@ public class PNGWriter implements IWriter {
 				bos = new BufferedOutputStream(os);
 				ImageIO.write(bi, "png", bos);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			}
 		}
 	}

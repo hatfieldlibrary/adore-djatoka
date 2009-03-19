@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.sun.media.jai.codec.BMPEncodeParam;
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageEncoder;
@@ -43,6 +45,7 @@ import com.sun.media.jai.codec.ImageEncoder;
  *
  */
 public class BMPWriter implements IWriter {
+	static Logger logger = Logger.getLogger(BMPWriter.class);
 	/* Format Serialization Properties */
 	/** Property: "BMPWriter.version" Expects int */
 	public static final String PROP_BMP_VERSION = "BMPWriter.version";
@@ -67,7 +70,7 @@ public class BMPWriter implements IWriter {
 				ImageEncoder enc = ImageCodec.createImageEncoder("BMP", bos, param);
 				enc.encode(bi);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			}
 		}
 	}

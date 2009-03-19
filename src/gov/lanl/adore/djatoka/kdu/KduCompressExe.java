@@ -47,6 +47,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class KduCompressExe implements ICompress {
+	static Logger logger = Logger.getLogger(KduCompressExe.class);
 	private static boolean isWindows = false;
 	private static String env;
 	private static String exe;
@@ -75,6 +76,7 @@ public class KduCompressExe implements ICompress {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
+		logger.debug("envparams: " + envParams.toString()); 
 	}
 
 	/**
@@ -87,6 +89,7 @@ public class KduCompressExe implements ICompress {
 	public KduCompressExe() throws Exception {
 		env = System.getProperty("kakadu.home");
 		if (env == null) {
+			logger.error("kakadu.home is not defined");
 			System.err.println("kakadu.home is not defined");
 			throw new Exception("kakadu.home is not defined");
 		}
@@ -110,8 +113,10 @@ public class KduCompressExe implements ICompress {
 			in = IOUtils.createTempTiff(bi);
 			compressImage(in.getAbsolutePath(), output, params);
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} catch (Exception e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} finally {
 			if (in != null)
@@ -140,8 +145,10 @@ public class KduCompressExe implements ICompress {
 			compressImage(in.getAbsolutePath(), out.getAbsolutePath(), params);
 			IOUtils.copyStream(new FileInputStream(out), output);
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} catch (Exception e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 
@@ -173,6 +180,7 @@ public class KduCompressExe implements ICompress {
 				dim = null;
 			}
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 
@@ -203,6 +211,7 @@ public class KduCompressExe implements ICompress {
 				dim = null;
 			}
 		} catch (IOException e1) {
+			logger.error("Unexpected file format; expecting TIFF",e1);
 			throw new DjatokaException("Unexpected file format; expecting TIFF");
 		}
 
@@ -212,6 +221,7 @@ public class KduCompressExe implements ICompress {
 			try {
 				winOut = File.createTempFile("pipe_", ".jp2");
 			} catch (IOException e) {
+				logger.error(e,e);
 				throw new DjatokaException(e);
 			}
 			out = winOut.getAbsolutePath();
@@ -219,6 +229,7 @@ public class KduCompressExe implements ICompress {
 
 		String command = getKduCompressCommand(inputFile.getAbsolutePath(),
 				out, params);
+		logger.debug("compressCommand: " + command);
 		Runtime rt = Runtime.getRuntime();
 		try {
 			final Process process = rt.exec(command, envParams, new File(env));
@@ -235,6 +246,7 @@ public class KduCompressExe implements ICompress {
 				try {
 					errorCheck = new String(IOUtils.getByteArray(process.getErrorStream()));
 				} catch (Exception e1) {
+					logger.error(e1,e1);
 				}
 				process.getInputStream().close();
 				process.getOutputStream().close();
@@ -244,8 +256,10 @@ public class KduCompressExe implements ICompress {
 					throw new DjatokaException(errorCheck);
 			}
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} catch (InterruptedException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 
@@ -309,8 +323,10 @@ public class KduCompressExe implements ICompress {
 					throw new DjatokaException(errorCheck);
 			}
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} catch (InterruptedException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} finally {
 			if (tmp)

@@ -34,8 +34,9 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
+
+import org.apache.log4j.Logger;
 
 /**
  * Use ImageJ API to read image InputStream or image file path.
@@ -43,7 +44,7 @@ import java.io.InputStream;
  *
  */
 public class ImageJReader implements IReader {
-
+	static Logger logger = Logger.getLogger(ImageJReader.class);
 	/**
 	 * Returns a BufferedImage instance for provided InputStream
 	 * @param input an InputStream consisting of an image bitstream
@@ -57,6 +58,7 @@ public class ImageJReader implements IReader {
 		ImagePlus imp = o.openTiff(input, "tif");
 		// Otherwise, we'll just stay in ImageJ but just provide a file path
 		if (imp == null) {
+			logger.info("Creating temp image");
 			File path = IOUtils.createTempImage(input);
 			bi = open(path.getAbsolutePath());
 			// Clean-up the temp file if we made one.
@@ -92,11 +94,8 @@ public class ImageJReader implements IReader {
 	 */
 	private BufferedImage open(ImagePlus imp) throws FormatIOException {
 		if (imp == null) {
-			try {
-				throw new FileNotFoundException();
-			} catch (FileNotFoundException e) {
-				throw new FormatIOException(e);
-			}
+			logger.error("Null ImagePlus Object.");
+			throw new FormatIOException("Null ImagePlus Object.");
 		}
 		ImageProcessor ip = imp.getProcessor();
 		int width = ip.getWidth();

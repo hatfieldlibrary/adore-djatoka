@@ -36,12 +36,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 /**
  * JP2 File Writer. Uses KduCompressExe to write BufferedImage as JP2
  * @author Ryan Chute
  *
  */
 public class JP2Writer implements IWriter {
+	static Logger logger = Logger.getLogger(JP2Writer.class);
 	private DjatokaEncodeParam params = new DjatokaEncodeParam();
 	
 	/**
@@ -61,13 +64,13 @@ public class JP2Writer implements IWriter {
 				encoder.compressImage(bi, bos, params);
 				bos.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 				throw new FormatIOException(e);
 			} catch (DjatokaException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 				throw new FormatIOException(e);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e,e);
 				throw new FormatIOException(e);
 			}
 		}

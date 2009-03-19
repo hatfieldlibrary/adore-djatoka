@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Properties;
 
 import ij.ImagePlus;
@@ -95,12 +96,9 @@ public class IOUtils {
         	in = new BufferedInputStream(new FileInputStream(location.getFile()));
         } else {
 			try {
-				HttpURLConnection huc = (HttpURLConnection) (location.openConnection());
-				int code = huc.getResponseCode();
-				if (code == 200) {
-					in = huc.getInputStream();
-				} else
-					throw new Exception("Cannot get " + location.toString());
+				URLConnection huc = location.openConnection();
+				huc.connect();
+				in = huc.getInputStream();
 			} catch (MalformedURLException e) {
 				throw new Exception("A MalformedURLException occurred for " + location.toString());
 			} catch (IOException e) {

@@ -191,4 +191,25 @@ public class KduExtractJNI implements IExtract {
 		KduExtractProcessorJNI decoder = new KduExtractProcessorJNI(input, params);
 		return decoder.extract();
 	}
+	
+	/**
+	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
+	 * @param input ImageRecord wrapper containing file reference, inputstream, etc.
+	 * @param params DjatokaDecodeParam instance containing region and transform settings.
+	 * @return extracted region as a BufferedImage
+	 * @throws DjatokaException
+	 */
+	public BufferedImage process(ImageRecord input, DjatokaDecodeParam params)
+			throws DjatokaException {
+		if (input.getImageFile() != null)
+			return process(input, params);
+		else if (input.getObject() != null
+				&& (input.getObject() instanceof InputStream))
+			return process((InputStream) input.getObject(), params);
+		else
+			throw new DjatokaException(
+					"File not defined and Input Object Type "
+							+ input.getObject().getClass().getName()
+							+ " is not supported");
+	}
 }

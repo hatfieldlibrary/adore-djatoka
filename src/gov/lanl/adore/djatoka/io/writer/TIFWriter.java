@@ -38,6 +38,8 @@ import java.util.Properties;
 
 import javax.imageio.ImageIO;
 
+import org.apache.log4j.Logger;
+
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageEncoder;
 import com.sun.media.jai.codec.TIFFEncodeParam;
@@ -48,7 +50,7 @@ import com.sun.media.jai.codec.TIFFEncodeParam;
  *
  */
 public class TIFWriter implements IWriter {
-	
+	static Logger logger = Logger.getLogger(TIFWriter.class);
 	/**
 	 * Write a BufferedImage instance using implementation to the 
 	 * provided OutputStream.
@@ -69,6 +71,7 @@ public class TIFWriter implements IWriter {
 		try {
 			encoder.write(out);
 		} catch (IOException e) {
+			logger.error(e);
 			throw new FormatIOException(e);
 		}
 	}
@@ -80,13 +83,14 @@ public class TIFWriter implements IWriter {
 				bos = new BufferedOutputStream(os);
 				ImageIO.write(bi, "tif", bos);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			} finally {
 				if (bos != null) {
 					try {
 						bos.flush();
 						bos.close();
 					} catch (IOException e) {
+						logger.error(e,e);
 						throw new FormatIOException(e);
 					}
 				}
@@ -104,13 +108,14 @@ public class TIFWriter implements IWriter {
 				ImageEncoder enc = ImageCodec.createImageEncoder("TIFF", bos, param);
 				enc.encode(bi);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			} finally {
 				if (bos != null) {
 					try {
 						bos.flush();
 						bos.close();
 					} catch (IOException e) {
+						logger.error(e,e);
 						throw new FormatIOException(e);
 					}
 				}

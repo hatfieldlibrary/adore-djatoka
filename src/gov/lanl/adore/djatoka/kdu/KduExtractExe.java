@@ -47,6 +47,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import org.apache.log4j.Logger;
+
 import kdu_jni.Jp2_family_src;
 import kdu_jni.Jp2_input_box;
 import kdu_jni.Jp2_locator;
@@ -65,6 +67,7 @@ import kdu_jni.Kdu_params;
  *
  */
 public class KduExtractExe implements IExtract {
+	private static Logger logger = Logger.getLogger(KduExtractExe.class);
 	private static boolean isWindows = false;
 	private static String env;
 	private static String exe;
@@ -94,6 +97,7 @@ public class KduExtractExe implements IExtract {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
+		logger.debug("envParams: " + envParams.toString());
 	}
 
 	/**
@@ -113,6 +117,7 @@ public class KduExtractExe implements IExtract {
 			in.deleteOnExit();
 			IOUtils.copyStream(input, fos);
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 
@@ -167,6 +172,7 @@ public class KduExtractExe implements IExtract {
 	            streamHandler.setProcessOutputStream(process.getInputStream());
 	            streamHandler.setProcessErrorStream(process.getErrorStream());
 	        } catch (IOException e) {
+	        	logger.error(e,e);
 	            process.destroy();
 	            throw e;
 	        }
@@ -178,6 +184,7 @@ public class KduExtractExe implements IExtract {
 	            bi = new PNMReader().open(bais);
 	            streamHandler.stop();
 	        } catch (ThreadDeath t) {
+	        	logger.error(t,t);
 	            process.destroy();
 	            throw t;
 	        } finally {
@@ -186,7 +193,7 @@ public class KduExtractExe implements IExtract {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} 
 		return bi;
@@ -208,6 +215,7 @@ public class KduExtractExe implements IExtract {
 				winOut = File.createTempFile("pipe_", ".ppm");
 				winOut.deleteOnExit();
 			} catch (IOException e) {
+				logger.error(e,e);
 				throw new DjatokaException(e);
 			}
 			output = winOut.getAbsolutePath();
@@ -230,6 +238,7 @@ public class KduExtractExe implements IExtract {
 						try {
 							bi = new PNMReader().open(new BufferedInputStream(new FileInputStream(new File(output))));
 						} catch (Exception e) {
+							logger.error(e,e);
 						    if (winOut != null)
 								winOut.delete();
 						    throw e;
@@ -245,6 +254,7 @@ public class KduExtractExe implements IExtract {
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
+					logger.error(error,e);
 				    if (error != null)
 					    throw new DjatokaException(error);
 				    else 
@@ -258,7 +268,7 @@ public class KduExtractExe implements IExtract {
 				process.destroy();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error(e,e);
 		} 
 		return null;
 	}
@@ -287,6 +297,7 @@ public class KduExtractExe implements IExtract {
 					dims.get(3)).append("}");
 			command.append("-region ").append(region.toString()).append(" ");
 		}
+		logger.debug(command.toString());
 		return command.toString();
 	}
 	
@@ -341,6 +352,7 @@ public class KduExtractExe implements IExtract {
 			inputSource.Native_destroy();
 			jp2_family_in.Native_destroy();
 		} catch (KduException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 
@@ -367,6 +379,7 @@ public class KduExtractExe implements IExtract {
 			in.deleteOnExit();
 			IOUtils.copyStream(is, fos);
 		} catch (IOException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 		ImageRecord r = getMetadata(new ImageRecord(in.getAbsolutePath()));
@@ -462,6 +475,7 @@ public class KduExtractExe implements IExtract {
 				}
 			}
 		} catch (KduException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} finally {
 			jp2_family_in.Native_destroy();
@@ -487,6 +501,7 @@ public class KduExtractExe implements IExtract {
 		try {
 			comp_src = new KduCompressedSource(IOUtils.getByteArray(is));
 		} catch (Exception e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
 		Jp2_family_src jp2_family_in = new Jp2_family_src();
@@ -511,6 +526,7 @@ public class KduExtractExe implements IExtract {
 				}
 			}
 		} catch (KduException e) {
+			logger.error(e,e);
 			throw new DjatokaException(e);
 		} finally {
 			jp2_family_in.Native_destroy();
@@ -696,5 +712,32 @@ public class KduExtractExe implements IExtract {
             }
         }
     }
+
+    /**
+	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
+	 * 
+	 * @param input
+	 *            ImageRecord wrapper containing file reference, inputstream,
+	 *            etc.
+	 * @param params
+	 *            DjatokaDecodeParam instance containing region and transform
+	 *            settings.
+	 * @return extracted region as a BufferedImage
+	 * @throws DjatokaException
+	 */
+	public BufferedImage process(ImageRecord input, DjatokaDecodeParam params)
+			throws DjatokaException {
+		if (input.getImageFile() != null)
+			return process(input, params);
+		else if (input.getObject() != null
+				&& (input.getObject() instanceof InputStream))
+			return process((InputStream) input.getObject(), params);
+		else {
+			throw new DjatokaException(
+					"File not defined and Input Object Type "
+							+ input.getObject().getClass().getName()
+							+ " is not supported");
+		}
+	}
 
 }

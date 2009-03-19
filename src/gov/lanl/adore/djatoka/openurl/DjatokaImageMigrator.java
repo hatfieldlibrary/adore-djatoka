@@ -43,12 +43,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 /**
  * Utility class used to harvest URIs and compress files into JP2
  * @author Ryan Chute
  *
  */
 public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator {
+	static Logger logger = Logger.getLogger(DjatokaImageMigrator.class);
 	private ArrayList<String> processing = new ArrayList<String>();
 	private HashMap<String, String> formatMap;
 	
@@ -84,6 +87,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 	 */
 	public File convert(URI uri) throws DjatokaException {
 		try {
+			logger.info("processingRemoteURI: " + uri.toURL());
 			processing.add(uri.toString());
 			File urlLocal = null;
 			// Obtain Resource

@@ -34,6 +34,8 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 import gov.lanl.adore.djatoka.util.ImageRecord;
 import info.openurl.oom.entities.Referent;
 
@@ -49,6 +51,7 @@ import info.openurl.oom.entities.Referent;
  *
  */
 public class SimpleListResolver implements IReferentResolver {
+	static Logger logger = Logger.getLogger(SimpleListResolver.class);
 	private static final String PROP_IMGS_INDEX = "SimpleListResolver.imgIndexFile";
 	private static LinkedHashMap<String, ImageRecord> imgs;
 	private static IReferentMigrator dim = new DjatokaImageMigrator();
@@ -74,7 +77,7 @@ public class SimpleListResolver implements IReferentResolver {
 	 */
 	public ImageRecord getImageRecord(String rftId) throws ResolverException {
 		ImageRecord ir = imgs.get(rftId);
-		if (ir == null && (rftId.startsWith("http") || rftId.startsWith("file"))) {
+		if (ir == null && isResolvableURI(rftId)) {
 			try {
 				URI uri = new URI(rftId);
 				if (dim.getProcessingList().contains(uri.toString())) {
@@ -94,10 +97,19 @@ public class SimpleListResolver implements IReferentResolver {
 				else
 					throw new ResolverException("An error occurred processing file:" + uri.toURL().toString());
 			} catch (Exception e) {
+				logger.error(e,e);
 				throw new ResolverException(e);
 			}
+		} else if (isResolvableURI(rftId) && !new File(ir.getImageFile()).exists()) {
+				// Handle ImageRecord in cache, but file does not exist on the file system
+				imgs.remove(rftId);
+				return getImageRecord(rftId);
 		}
 		return ir;
+	}
+		
+	private static boolean isResolvableURI(String rftId) {
+		return (rftId.startsWith("http") || rftId.startsWith("file") || rftId.startsWith("ftp"));
 	}
 	
 	/**
@@ -136,6 +148,7 @@ public class SimpleListResolver implements IReferentResolver {
 			} else
 				throw new ResolverException(PROP_IMGS_INDEX + " is not defined.");
 		} catch (Exception e) {
+			logger.error(e,e);
 			throw new ResolverException(e);
 		}
 	}

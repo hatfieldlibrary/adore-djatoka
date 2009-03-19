@@ -33,6 +33,7 @@ import java.util.HashMap;
 public class ImageRecord {
 	private String identifier;
 	private String imageFile;
+	private Object object;
 	private int width;
 	private int height;
 	private int levels;
@@ -225,5 +226,24 @@ public class ImageRecord {
 	 */
 	public void setNumChannels(int numChannels) {
 		this.numChannels = numChannels;
+	}
+	
+    /**
+	 * Sets InputStream, ByteArray, URL, etc.
+	 * 
+	 * @param the
+	 *            object to be resolved by another process
+	 */
+	public void setObject(Object object) {
+		this.object = object;
+	}
+
+	/**
+	 * Returns InputStream, ByteArray, URL, whatever was set
+	 * 
+	 * @return the object to be resolved by another process
+	 */
+	public Object getObject() {
+		return object;
 	}
 }

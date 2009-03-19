@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.sun.image.codec.jpeg.ImageFormatException;
 import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
@@ -45,6 +47,7 @@ import com.sun.media.jai.codec.ImageEncoder;
  *
  */
 public class JPGWriter implements IWriter {
+	static Logger logger = Logger.getLogger(JPGWriter.class);
 	public static final int DEFAULT_QUALITY_LEVEL = 85;
 	private int q = DEFAULT_QUALITY_LEVEL;
 	
@@ -70,10 +73,10 @@ public class JPGWriter implements IWriter {
             try {
 				encoder.encode(bi, param);
 			} catch (ImageFormatException e) {
-				e.printStackTrace();
+				logger.error(e);
 				throw new FormatIOException(e);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e);
 				throw new FormatIOException(e);
 			}
 		}
@@ -89,7 +92,7 @@ public class JPGWriter implements IWriter {
 				ImageEncoder enc = ImageCodec.createImageEncoder("jpeg", bos, param);
 				enc.encode(bi);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e);
 			}
 		}
 	}

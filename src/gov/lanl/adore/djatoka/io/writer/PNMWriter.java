@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageEncoder;
 import com.sun.media.jai.codec.PNMEncodeParam;
@@ -42,7 +44,7 @@ import com.sun.media.jai.codec.PNMEncodeParam;
  *
  */
 public class PNMWriter implements IWriter {
-	
+	static Logger logger = Logger.getLogger(PNMWriter.class);
 	/**
 	 * Write a BufferedImage instance using implementation to the 
 	 * provided OutputStream.
@@ -60,7 +62,7 @@ public class PNMWriter implements IWriter {
 				ImageEncoder enc = ImageCodec.createImageEncoder("PNM", bos, param);
 				enc.encode(bi);
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error(e,e);
 			}
 		}
 	}

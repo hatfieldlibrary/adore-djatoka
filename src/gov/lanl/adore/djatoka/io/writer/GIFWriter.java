@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 
@@ -44,7 +46,6 @@ import ij.process.ImageProcessor;
  *
  */
 public class GIFWriter implements IWriter {
-	
 	/**
 	 * Write a BufferedImage instance using implementation to the 
 	 * provided OutputStream.

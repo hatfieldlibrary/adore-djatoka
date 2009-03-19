@@ -53,6 +53,7 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.oclc.oomRef.descriptors.ByValueMetadataImpl;
 
 /**
@@ -61,6 +62,7 @@ import org.oclc.oomRef.descriptors.ByValueMetadataImpl;
  * @author Ryan Chute
  */
 public class OpenURLJP2KService implements Service, FormatConstants {
+	static Logger logger = Logger.getLogger(OpenURLJP2KService.class);
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_REQUESTER = "requester";
     private static final String PROPS_REFERRING_ENTITY = "referringEntity";
@@ -120,8 +122,10 @@ public class OpenURLJP2KService implements Service, FormatConstants {
                 init = true;
         	}
         } catch (IOException e) {
+        	logger.error(e,e);
             throw new ResolverException("Error attempting to open props file from classpath, disabling " + SVC_ID + " : " + e.getMessage());
         } catch (Exception e) {
+        	logger.error(e,e);
         	throw new ResolverException("Unable to inititalize implementation: " + props.getProperty(implClass) + " - " + e.getMessage());
 		}
 	}
@@ -242,21 +246,26 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 							extractor.extractImage(r.getImageFile(), file,
 									params, format);
 							bytes = IOUtils.getBytesFromFile(f);
+							logger.debug("tileCache: " + file + " " + bytes.length);
 							tileCache.put(hash + ext, file);
 						} else {
 							bytes = IOUtils.getBytesFromFile(new File(file));
+							logger.debug("tileCache: " + file + " " + bytes.length);
 						}
 					}
 				}
 			} catch (ResolverException e) {
+				logger.error(e,e);
 			    bytes = e.getMessage().getBytes();
 				responseFormat = "text/plain";
 				status = HttpServletResponse.SC_NOT_FOUND;
 			} catch (DjatokaException e) {
+				logger.error(e,e);
 			    bytes = e.getMessage().getBytes();
 				responseFormat = "text/plain";
 				status = HttpServletResponse.SC_NOT_FOUND;
 			} catch (Exception e) {
+				logger.error(e,e);
 			    bytes = e.getMessage().getBytes();
 				responseFormat = "text/plain";
 				status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;

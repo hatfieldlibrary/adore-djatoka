@@ -57,6 +57,15 @@ public interface IExtract {
 	public BufferedImage process(String input, DjatokaDecodeParam params) throws DjatokaException;
 
 	/**
+	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
+	 * @param input ImageRecord wrapper containing file reference, inputstream, etc.
+	 * @param params DjatokaDecodeParam instance containing region and transform settings.
+	 * @return extracted region as a BufferedImage
+	 * @throws DjatokaException
+	 */
+	public BufferedImage process(ImageRecord input, DjatokaDecodeParam params) throws DjatokaException;
+	
+	/**
 	 * Returns JPEG 2000 width, height, resolution levels in Integer[]
 	 * @param  input ImageRecord containing absolute file path of JPEG 2000 image file.
 	 * @return a populated ImageRecord object containing width,height,DWT levels of image
