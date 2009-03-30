@@ -75,10 +75,10 @@ public interface IExtract {
 	
 	/**
 	 * Returns JPEG 2000 XML Box data in String[]
-	 * @param input absolute file path of JPEG 2000 image file.
+	 * @param input ImageRecord contains a file path or file reference, inputstream, etc.
 	 * @return an array of XML box values
 	 * @throws DjatokaException
 	 */
-	public String[] getXMLBox(String input) throws DjatokaException;
+	public String[] getXMLBox(ImageRecord input) throws DjatokaException;
 
 }

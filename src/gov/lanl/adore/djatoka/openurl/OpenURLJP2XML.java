@@ -48,12 +48,15 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 /**
  * The OpenURLJP2KMetadata OpenURL Service
  * 
  * @author Ryan Chute
  */
 public class OpenURLJP2XML implements Service, FormatConstants {
+	static Logger logger = Logger.getLogger(OpenURLJP2XML.class);
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_KEY_IMPL_CLASS = "OpenURLJP2KService.referentResolverImpl";
 	private static final String SVC_ID = "info:lanl-repo/svc/getJP2XML";
@@ -105,7 +108,7 @@ public class OpenURLJP2XML implements Service, FormatConstants {
 			baos = new ByteArrayOutputStream();
 			IExtract jp2 = new KduExtractExe();
 			ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
-			String[] xml = jp2.getXMLBox(r.getImageFile());
+			String[] xml = jp2.getXMLBox(r);
 			StringBuffer sb = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             sb.append("<jp2:JP2XML xmlns:jp2=\"http://library.lanl.gov/2008-11/aDORe/JP2XML/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  xsi:schemaLocation=\"http://library.lanl.gov/2008-11/aDORe/JP2XML/ http://purl.lanl.gov/aDORe/schemas/2008-11/JP2XML.xsd\"");            
             sb.append(" boxCount=\"" + xml.length + "\">");
@@ -120,17 +123,7 @@ public class OpenURLJP2XML implements Service, FormatConstants {
 			sb.append("</jp2:JP2XML>");
 			baos.write(sb.toString().getBytes());
 		} catch (Exception e) {
-			baos = new ByteArrayOutputStream();
-			try {
-				if (e.getMessage() != null)
-				    baos.write(e.getMessage().getBytes("UTF-8"));
-				else
-					baos.write("Internal Server Error".getBytes());
-			} catch (UnsupportedEncodingException e1) {
-				e1.printStackTrace();
-			} catch (IOException e2) {
-				e2.printStackTrace();
-			}
+			logger.error(e,e);
 			responseFormat = "text/plain";
 			status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 		} 

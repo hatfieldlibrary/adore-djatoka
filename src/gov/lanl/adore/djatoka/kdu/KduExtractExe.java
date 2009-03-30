@@ -31,6 +31,7 @@ import gov.lanl.adore.djatoka.kdu.jni.KduCompressedSource;
 import gov.lanl.adore.djatoka.util.IOUtils;
 import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 import gov.lanl.adore.djatoka.util.ImageRecord;
+import gov.lanl.adore.djatoka.util.JP2ImageInfo;
 import gov.lanl.util.ExecuteStreamHandler;
 import gov.lanl.util.PumpStreamHandler;
 
@@ -72,6 +73,7 @@ public class KduExtractExe implements IExtract {
 	private static String env;
 	private static String exe;
 	private static String[] envParams;
+	private final static BufferedImage OOB = getOutOfBoundsImage();
 	/** Extract App Name "kdu_expand" */
 	public static final String KDU_EXPAND_EXE = "kdu_expand";
 	/** UNIX/Linux Standard Out Path: "/dev/stdout" */
@@ -97,7 +99,7 @@ public class KduExtractExe implements IExtract {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
-		logger.debug("envParams: " + envParams.toString());
+		logger.debug("envParams: " + envParams[0] + " | " + exe );
 	}
 
 	/**
@@ -173,7 +175,9 @@ public class KduExtractExe implements IExtract {
 	            streamHandler.setProcessErrorStream(process.getErrorStream());
 	        } catch (IOException e) {
 	        	logger.error(e,e);
-	            process.destroy();
+	        	if (process != null) {
+					closeStreams(process);
+				}
 	            throw e;
 	        }
 	        streamHandler.start();
@@ -210,6 +214,7 @@ public class KduExtractExe implements IExtract {
 			throws DjatokaException {
 		String output = STDOUT;
 		File winOut = null;
+		BufferedImage bi = null;
 		if (isWindows) {
 			try {
 				winOut = File.createTempFile("pipe_", ".ppm");
@@ -229,12 +234,10 @@ public class KduExtractExe implements IExtract {
 			if (output != null) {
 				try {
 					if (output.equals(STDOUT)) {
-						return new PNMReader().open(new BufferedInputStream(
-								process.getInputStream()));
+						bi = new PNMReader().open(new BufferedInputStream(process.getInputStream()));
 					} else if (isWindows) {
 						// Windows tests indicated need for delay (< 100ms failed)
 						Thread.sleep(100);
-						BufferedImage bi = null;
 						try {
 							bi = new PNMReader().open(new BufferedInputStream(new FileInputStream(new File(output))));
 						} catch (Exception e) {
@@ -245,8 +248,10 @@ public class KduExtractExe implements IExtract {
 						}
 						if (winOut != null)
 							winOut.delete();
-						return bi;
 				    } 
+				} catch (RuntimeException e) {
+					logger.debug("Request out of bounds");
+					bi = OOB;
 				} catch (Exception e) {
 					String error = null;
 					try {
@@ -259,18 +264,43 @@ public class KduExtractExe implements IExtract {
 					    throw new DjatokaException(error);
 				    else 
 				    	throw new DjatokaException(e);
-				} 
-			}
-			if (process != null) {
-				process.getInputStream().close();
-				process.getOutputStream().close();
-				process.getErrorStream().close();
-				process.destroy();
+				} finally {
+					if (process != null) {
+						closeStreams(process);
+					}
+				}
 			}
 		} catch (IOException e) {
 			logger.error(e,e);
 		} 
-		return null;
+		return bi;
+	}
+	
+    /**
+	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
+	 * 
+	 * @param input
+	 *            ImageRecord wrapper containing file reference, inputstream,
+	 *            etc.
+	 * @param params
+	 *            DjatokaDecodeParam instance containing region and transform
+	 *            settings.
+	 * @return extracted region as a BufferedImage
+	 * @throws DjatokaException
+	 */
+	public BufferedImage process(ImageRecord input, DjatokaDecodeParam params)
+			throws DjatokaException {
+		if (input.getImageFile() != null)
+			return process(input, params);
+		else if (input.getObject() != null
+				&& (input.getObject() instanceof InputStream))
+			return process((InputStream) input.getObject(), params);
+		else {
+			throw new DjatokaException(
+					"File not defined and Input Object Type "
+							+ input.getObject().getClass().getName()
+							+ " is not supported");
+		}
 	}
 
 	/**
@@ -308,9 +338,11 @@ public class KduExtractExe implements IExtract {
 	 * @throws DjatokaException
 	 */
 	public final ImageRecord getMetadata(ImageRecord r) throws DjatokaException {
+		if (r.getImageFile() == null && r.getObject() != null)
+			return getMetadata((InputStream) r.getObject());
 		if (!new File(r.getImageFile()).exists())
 			throw new DjatokaException("Image Does Not Exist");
-		if (!checkIfJp2(r.getImageFile()))
+		if (!ImageProcessingUtils.checkIfJp2(r.getImageFile()))
 			throw new DjatokaException("Not a JP2 image.");
 		
 		Jpx_source inputSource = new Jpx_source();
@@ -364,219 +396,32 @@ public class KduExtractExe implements IExtract {
 	 * @param is an InputStream containing the JPEG 2000 codestream
 	 * @return a populated JPEG 2000 ImageRecord instance
 	 * @throws DjatokaException
-	 * 
-	 * TODO: Current I/O method is a bit gross, but the KduCompressedSource approach
-	 * is actually slower.  More work need to be done to improve the performance of
-	 * the KduCompressedSource implementation.
 	 *  
 	 */
 	public final ImageRecord getMetadata(final InputStream is) throws DjatokaException {
-		File in = null;
-		// Copy to tmp file
+		JP2ImageInfo info;
 		try {
-			in = File.createTempFile("tmp", ".jp2");
-			FileOutputStream fos = new FileOutputStream(in);
-			in.deleteOnExit();
-			IOUtils.copyStream(is, fos);
+			info = new JP2ImageInfo(is);
 		} catch (IOException e) {
 			logger.error(e,e);
 			throw new DjatokaException(e);
 		}
-		ImageRecord r = getMetadata(new ImageRecord(in.getAbsolutePath()));
-
-		return r;
+		return info.getImageRecord();
 	}
 	
-	public final ImageRecord getMetadata(final InputStream is, boolean layerInfo) throws DjatokaException {
-		ImageRecord r = new ImageRecord();
-		KduCompressedSource comp_src = null;
+	public final String[] getXMLBox(ImageRecord r) throws DjatokaException {
+		String[] xml = null;
 		try {
-			comp_src = new KduCompressedSource(IOUtils.getByteArray(is));
-		} catch (Exception e) {
-			throw new DjatokaException(e);
-		}
-		Jpx_source inputSource = new Jpx_source();
-		Jp2_family_src jp2_family_in = new Jp2_family_src();
-		
-		int ref_component = 0;
-		try {
-			jp2_family_in.Open(comp_src);
-			inputSource.Open(jp2_family_in, true);
-			Kdu_codestream codestream = new Kdu_codestream();
-			codestream.Create(inputSource.Access_codestream(ref_component).Open_stream());
-
-			int minLevels = codestream.Get_min_dwt_levels();
-			int depth = codestream.Get_bit_depth(ref_component);
-			int colors = codestream.Get_num_components();
-			//int[] frames = new int[1];
-			//inputSource.Count_compositing_layers(frames);
-			Kdu_dims image_dims = new Kdu_dims();
-			codestream.Get_dims(ref_component, image_dims);
-			Kdu_coords imageSize = image_dims.Access_size();
-			
-			r.setWidth(imageSize.Get_x());
-			r.setHeight(imageSize.Get_y());
-			r.setLevels(minLevels);
-			r.setBitDepth(depth);
-			r.setNumChannels(colors);
-			//r.setCompositingLayerCount(frames[0]);
-			
-			int[] v = new int[1];
-			Kdu_params p = codestream.Access_siz().Access_cluster("COD");
-			if (p != null) {
-			    p.Get(Kdu_global.Clayers,0,0,v,true, true, true);
-			    if (v[0] > 0)
-			        r.setQualityLayers(v[0]);
+			if (r.getImageFile() == null && r.getObject() != null
+					&& r.getObject() instanceof InputStream) {
+				xml = new JP2ImageInfo((InputStream) r.getObject()).getXmlDocs();
+			} else {
+				xml = new JP2ImageInfo(new File(r.getImageFile())).getXmlDocs();
 			}
-			
-			if (codestream.Exists())
-				codestream.Destroy();
-			inputSource.Native_destroy();
-			jp2_family_in.Native_destroy();
-		} catch (KduException e) {
-			throw new DjatokaException(e);
+		} catch (IOException e) {
+			logger.error(e, e);
 		}
-
-		return r;
-	}
-	
-	/**
-	 * Returns JPEG 2000 XML Box data in String[]
-	 * @param input absolute file path of JPEG 2000 image file.
-	 * @return an array of XML box values
-	 * @throws DjatokaException
-	 */
-	public final String[] getXMLBox(String input) throws DjatokaException {
-		if (!new File(input).exists())
-			throw new DjatokaException("Image Does Not Exist");
-		if (!checkIfJp2(input))
-			throw new DjatokaException("Not a JP2 image.");
-		ArrayList<String> xmlList = null;
-		Jp2_family_src jp2_family_in = new Jp2_family_src();
-		Jp2_locator loc = new Jp2_locator();
-		Jpx_input_box box = new Jpx_input_box();
-		String[] values = new String[0];
-		try {
-			jp2_family_in.Open(input, true);
-			box.Open(jp2_family_in, loc);
-			while (box != null && box.Get_box_bytes() > 0) {
-				int x = (int) box.Get_box_type();
-				String t = getType(x);
-				if (t.startsWith("xml")) {
-					if (xmlList == null)
-						xmlList = new ArrayList<String>();
-					String tmp = new String(getEntry(box));
-					xmlList.add(tmp);
-				    box.Close();
-				    box.Open_next();
-				} else {
-					box.Close();
-					box.Open_next();
-				}
-			}
-		} catch (KduException e) {
-			logger.error(e,e);
-			throw new DjatokaException(e);
-		} finally {
-			jp2_family_in.Native_destroy();
-		}
-
-		if (xmlList != null) {
-			values = new String[xmlList.size()];
-			xmlList.toArray(values);
-		}
-		
-		return values;
-	}
-
-	/**
-	 * Returns JPEG 2000 XML Box data in String[] from an InputStream
-	 * @param is InputStream containing JP2 images
-	 * @return an array of XML box values
-	 * @throws DjatokaException
-	 */
-	public final String[] getXMLBox(final InputStream is) throws DjatokaException {
-		ArrayList<String> xmlList = null;
-		KduCompressedSource comp_src = null;
-		try {
-			comp_src = new KduCompressedSource(IOUtils.getByteArray(is));
-		} catch (Exception e) {
-			logger.error(e,e);
-			throw new DjatokaException(e);
-		}
-		Jp2_family_src jp2_family_in = new Jp2_family_src();
-		Jp2_locator loc = new Jp2_locator();
-		Jpx_input_box box = new Jpx_input_box();
-		String[] values = null;
-		try {
-			jp2_family_in.Open(comp_src);
-			box.Open(jp2_family_in, loc);
-			while (box != null && box.Get_box_bytes() > 0) {
-				int x = (int) box.Get_box_type();
-				String t = getType(x);
-				if (t.startsWith("xml")) {
-					if (xmlList == null)
-						xmlList = new ArrayList<String>();
-					String tmp = new String(getEntry(box));
-					xmlList.add(tmp);
-				    box.Close();
-				} else {
-					box.Close();
-					box.Open_next();
-				}
-			}
-		} catch (KduException e) {
-			logger.error(e,e);
-			throw new DjatokaException(e);
-		} finally {
-			jp2_family_in.Native_destroy();
-			comp_src = null;
-		}
-
-		if (xmlList != null) {
-			values = new String[xmlList.size()];
-			xmlList.toArray(values);
-		}
-		
-		return values;
-	}
-	
-	private static byte[] getEntry(final Jp2_input_box box) throws KduException {
-	    final int n = (int) box.Get_box_bytes();
-	    final byte[] b = new byte[n];
-	    int r = box.Read(b, n);
-	    final byte[] out = new byte[r];
-	    System.arraycopy(b, 0, out, 0, r);
-	    return out;
-	}
-	
-	private static String getType(int type) {
-        byte[] buf = new byte[4];
-        for (int i = 3; i >= 0; i--) {
-            buf[i] = (byte) (type & 0xFF);
-            type >>>= 8;
-        }
-        return new String(buf);
-    }
-	
-	private final String magic = "000c6a502020da87a";
-	private final boolean checkIfJp2(String input) {
-    	InputStream in = null;
-    	byte[] buf = new byte[12];
-        try {
-            in = new BufferedInputStream(new FileInputStream(new File(input)));
-            in.read(buf, 0, 12);
-            in.close();
-        } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-        } 
-	    StringBuffer sb = new StringBuffer(buf.length * 2);
-	    for(int x = 0 ; x < buf.length ; x++) {
-	       sb.append((Integer.toHexString(0xff & buf[x])));
-	    }
-	    String hexString = sb.toString();
-	    return hexString.equals(magic);
+		return xml;
 	}
 	
 	private final ArrayList<Double> getRegionMetadata(InputStream input,
@@ -643,6 +488,14 @@ public class KduExtractExe implements IExtract {
 		return dims;
 	}
 	
+	private static BufferedImage getOutOfBoundsImage() {
+		BufferedImage bi = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        int rgb = bi.getRGB(0, 0);
+        int alpha = (rgb >> 24) & 0xff;
+        bi.setRGB(0, 0, alpha);
+        return bi;
+	}
+	
 	private static String toKduCompressArgs(DjatokaDecodeParam params) {
 		StringBuffer sb = new StringBuffer();
 	    if (params.getLevelReductionFactor() > 0)
@@ -652,26 +505,6 @@ public class KduExtractExe implements IExtract {
 	    if (params.getCompositingLayer() > 0)
 	    	sb.append("-jpx_layer ").append(params.getCompositingLayer()).append(" ");
 		return sb.toString();
-	}
-	
-	private ImageRecord parseRecord(String record, ImageRecord r) {
-		String[] list = record.split("\n");
-		for (String kv : list) {
-			if (kv.startsWith("Ssize")) {
-				String v = kv.split("=")[1];
-		        r.setWidth(Integer.parseInt(v.substring(v.indexOf(",") + 1,v.indexOf("}"))));
-			    r.setHeight(Integer.parseInt(v.substring(1,v.indexOf(","))));
-			}
-			if (kv.startsWith("Clevels"))
-			    r.setLevels(Integer.parseInt(kv.split("=")[1]));
-			if (kv.startsWith("Sprecision"))
-			    r.setBitDepth(Integer.parseInt(kv.split("=")[1].split(",")[0]));
-			if (kv.startsWith("Scomponents"))
-		    	r.setNumChannels(Integer.parseInt(kv.split("=")[1]));
-			if (kv.startsWith("Clayers"))
-			    r.setQualityLayers(Integer.parseInt(kv.split("=")[1]));
-		}
-		return r;
 	}
 
 	private static final String escape(String path) {
@@ -712,32 +545,4 @@ public class KduExtractExe implements IExtract {
             }
         }
     }
-
-    /**
-	 * Extracts region defined in DjatokaDecodeParam as BufferedImage
-	 * 
-	 * @param input
-	 *            ImageRecord wrapper containing file reference, inputstream,
-	 *            etc.
-	 * @param params
-	 *            DjatokaDecodeParam instance containing region and transform
-	 *            settings.
-	 * @return extracted region as a BufferedImage
-	 * @throws DjatokaException
-	 */
-	public BufferedImage process(ImageRecord input, DjatokaDecodeParam params)
-			throws DjatokaException {
-		if (input.getImageFile() != null)
-			return process(input, params);
-		else if (input.getObject() != null
-				&& (input.getObject() instanceof InputStream))
-			return process((InputStream) input.getObject(), params);
-		else {
-			throw new DjatokaException(
-					"File not defined and Input Object Type "
-							+ input.getObject().getClass().getName()
-							+ " is not supported");
-		}
-	}
-
 }

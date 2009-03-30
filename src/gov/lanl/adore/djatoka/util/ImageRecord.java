@@ -23,7 +23,9 @@
 
 package gov.lanl.adore.djatoka.util;
 
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Image Record Metadata. Used to transfer image properties.
@@ -41,7 +43,7 @@ public class ImageRecord {
 	private int compositingLayers;
 	private int bitDepth;
 	private int numChannels;
-	private HashMap<String, String> instProps;
+	private Map<String, String> instProps;
 	
 	/**
 	 * Default Constructor
@@ -151,7 +153,7 @@ public class ImageRecord {
 	 * be used transformation processes down the line.
 	 * @return a map of properties associated with the image. 
 	 */
-	public HashMap<String, String> getInstProps() {
+	public Map<String, String> getInstProps() {
 		return instProps;
 	}
 
@@ -160,7 +162,7 @@ public class ImageRecord {
 	 * be used transformation processes down the line.
 	 * @param instProps a map of properties associated with the image. 
 	 */
-	public void setInstProps(HashMap<String, String> instProps) {
+	public void setInstProps(Map<String, String> instProps) {
 		this.instProps = instProps;
 	}
 

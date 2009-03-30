@@ -58,7 +58,6 @@ public class PNMReader implements IReader{
 			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", new File(input), null);
 			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
 		} catch (IOException e) {
-			logger.error(e,e);
 			return null;
 		}
 		return aid.getAsBufferedImage();
@@ -76,7 +75,6 @@ public class PNMReader implements IReader{
 			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", input, null);
 			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
 		} catch (IOException e) {
-			logger.error(e,e);
 			return null;
 		}
 		return aid.getAsBufferedImage();

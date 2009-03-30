@@ -39,8 +39,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -52,7 +52,7 @@ import org.apache.log4j.Logger;
  */
 public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator {
 	static Logger logger = Logger.getLogger(DjatokaImageMigrator.class);
-	private ArrayList<String> processing = new ArrayList<String>();
+	private List<String> processing = java.util.Collections.synchronizedList(new LinkedList<String>());
 	private HashMap<String, String> formatMap;
 	
 	/**
@@ -92,7 +92,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 			File urlLocal = null;
 			// Obtain Resource
 			InputStream src = IOUtils.getInputStream(uri.toURL());
-			String ext = uri.toURL().toString().substring(uri.toURL().toString().lastIndexOf(".") + 1);
+			String ext = uri.toURL().toString().substring(uri.toURL().toString().lastIndexOf(".") + 1).toLowerCase();
 			if (ext.equals(FORMAT_ID_TIF) || ext.equals(FORMAT_ID_TIFF)) {
 				urlLocal = File.createTempFile("convert" + uri.hashCode(), "." + FORMAT_ID_TIF);
 			} else if (formatMap.containsKey(ext) && (formatMap.get(ext).equals(FORMAT_MIMEYPE_JP2) || formatMap.get(ext).equals(FORMAT_MIMEYPE_JPX))) {
@@ -111,7 +111,6 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 					src.close();
 					src = IOUtils.getInputStream(uri.toURL());
 				}
-
 		    } 
 
 			if (urlLocal == null) {
@@ -148,7 +147,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 	 */
 	public File processImage(File img, URI uri) throws DjatokaException {
 		String imgPath = img.getAbsolutePath();
-		String fmt = formatMap.get(imgPath.substring(imgPath.lastIndexOf('.') + 1));
+		String fmt = formatMap.get(imgPath.substring(imgPath.lastIndexOf('.') + 1).toLowerCase());
 		try {
 			if (fmt == null || !ImageProcessingUtils.isJp2Type(fmt)) {
 				ICompress jp2 = new KduCompressExe();

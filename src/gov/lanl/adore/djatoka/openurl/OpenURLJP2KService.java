@@ -203,16 +203,23 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			try {
 				ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
 				if (r != null) {
+					if (logger.isInfoEnabled() && contextObject.getRequesters().length > 0
+							&& contextObject.getRequesters()[0]
+									.getDescriptors().length > 0) {
+					    String requester = contextObject.getRequesters()[0].getDescriptors()[0].toString();
+					    logger.info("requester: " + r.getIdentifier() + " " + requester);
+					}
 					if (transformCheck && transform != null) {
 						HashMap<String, String> instProps = new HashMap<String, String>();
 						if (r.getInstProps() != null)
 							instProps.putAll(r.getInstProps());
 						if (contextObject.getRequesters().length > 0
 								&& contextObject.getRequesters()[0]
-										.getDescriptors().length > 0)
-							instProps.put(PROPS_REQUESTER, contextObject
-									.getRequesters()[0].getDescriptors()[0]
-									.toString());
+										.getDescriptors().length > 0) {
+							String requester = contextObject.getRequesters()[0]
+									.getDescriptors()[0].toString();
+							instProps.put(PROPS_REQUESTER, requester);
+						}
 						if (contextObject.getReferringEntities().length > 0
 								&& contextObject.getReferringEntities()[0]
 										.getDescriptors().length > 0)
@@ -231,9 +238,12 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 					} else {
 						String ext = getExtension(format);
 						String hash = getTileHash(r, params);
-						String file = null;
-						if ((file = tileCache.get(hash + ext)) == null) {
-							File f;
+						String file = tileCache.get(hash + ext);
+						File f;
+						if (file == null || 
+								(file != null 
+										&& !(f = new File(file)).exists() 
+										&& f.length() > 0)) {
 							if (cacheDir != null)
 								f = File.createTempFile("cache"
 										+ hash.hashCode() + "-", "." + ext,
@@ -246,7 +256,7 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 							extractor.extractImage(r.getImageFile(), file,
 									params, format);
 							bytes = IOUtils.getBytesFromFile(f);
-							logger.debug("tileCache: " + file + " " + bytes.length);
+							logger.debug("makingTile: " + file + " " + bytes.length);
 							tileCache.put(hash + ext, file);
 						} else {
 							bytes = IOUtils.getBytesFromFile(new File(file));

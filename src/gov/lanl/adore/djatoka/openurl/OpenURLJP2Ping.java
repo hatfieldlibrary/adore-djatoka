@@ -43,12 +43,15 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 /**
  * The OpenURLJP2Ping OpenURL Service
  * 
  * @author Ryan Chute
  */
 public class OpenURLJP2Ping implements Service, FormatConstants {
+	static Logger logger = Logger.getLogger(OpenURLJP2Ping.class);
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_KEY_IMPL_CLASS = "OpenURLJP2KService.referentResolverImpl";
 	private static final String SVC_ID = "info:lanl-repo/svc/ping";
@@ -117,6 +120,7 @@ public class OpenURLJP2Ping implements Service, FormatConstants {
 				sb.append("\n}");
 			}
 		} catch (Exception e) {
+			logger.error(e,e);
 			status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 		} 
 		HashMap<String, String> header_map = new HashMap<String, String>();

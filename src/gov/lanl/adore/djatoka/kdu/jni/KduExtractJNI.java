@@ -27,11 +27,12 @@ import gov.lanl.adore.djatoka.DjatokaDecodeParam;
 import gov.lanl.adore.djatoka.DjatokaException;
 import gov.lanl.adore.djatoka.IExtract;
 import gov.lanl.adore.djatoka.util.ImageRecord;
+import gov.lanl.adore.djatoka.util.JP2ImageInfo;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import kdu_jni.Jp2_family_src;
 import kdu_jni.Jp2_input_box;
@@ -44,6 +45,8 @@ import kdu_jni.Kdu_compressed_source;
 import kdu_jni.Kdu_coords;
 import kdu_jni.Kdu_dims;
 
+import org.apache.log4j.Logger;
+
 /**
  * Uses Kakadu Java Native Interface to extract JP2 regions.  
  * This is modified port of the kdu_expand app.
@@ -52,6 +55,7 @@ import kdu_jni.Kdu_dims;
  */
 public class KduExtractJNI implements IExtract {
 
+	private static Logger logger = Logger.getLogger(KduExtractJNI.class);
 	/**
 	 * Returns JPEG 2000 props in ImageRecord
 	 * @param r ImageRecord containing absolute file path of JPEG 2000 image file.
@@ -103,68 +107,20 @@ public class KduExtractJNI implements IExtract {
 		return r;
 	}
 
-	/**
-	 * Returns JPEG 2000 XML Box data in String[]
-	 * @param input absolute file path of JPEG 2000 image file.
-	 * @return an array of XML box values
-	 * @throws DjatokaException
-	 */
-	public final String[] getXMLBox(String input) throws DjatokaException {
-		if (!new File(input).exists())
-			throw new DjatokaException("Image Does Not Exist");
-
-		ArrayList<String> xmlList = null;
-		Jp2_family_src jp2_family_in = new Jp2_family_src();
-		Jp2_locator loc = new Jp2_locator();
-		Jp2_input_box box = new Jp2_input_box();
-		String[] values = null;
+	public final String[] getXMLBox(ImageRecord r) throws DjatokaException {
+		String[] xml = null;
 		try {
-			jp2_family_in.Open(input, true);
-			box.Open(jp2_family_in, loc);
-			while (box != null && box.Get_box_bytes() > 0) {
-				int x = (int) box.Get_box_type();
-				String t = getType(x);
-				if (t.startsWith("xml")) {
-					if (xmlList == null)
-						xmlList = new ArrayList<String>();
-					String tmp = new String(getEntry(box));
-					xmlList.add(tmp);
-				    box.Close();
-				} else {
-					box.Close();
-					box.Open_next();
-				}
+			if (r.getImageFile() == null && r.getObject() != null
+					&& r.getObject() instanceof InputStream) {
+				xml = new JP2ImageInfo((InputStream) r.getObject()).getXmlDocs();
+			} else {
+				xml = new JP2ImageInfo(new File(r.getImageFile())).getXmlDocs();
 			}
-		} catch (KduException e) {
-			throw new DjatokaException(e);
-		} finally {
-			jp2_family_in.Native_destroy();
+		} catch (IOException e) {
+			logger.error(e, e);
 		}
-
-		if (xmlList != null)
-			values = new String[xmlList.size()];
-			xmlList.toArray(values);
-		
-		return values;
+		return xml;
 	}
-
-	private static byte[] getEntry(final Jp2_input_box box) throws KduException {
-	    final int n = (int) box.Get_box_bytes();
-	    final byte[] b = new byte[n];
-	    int r = box.Read(b, n);
-	    final byte[] out = new byte[r];
-	    System.arraycopy(b, 0, out, 0, r);
-	    return out;
-	}
-	
-	private static String getType(int type) {
-        byte[] buf = new byte[4];
-        for (int i = 3; i >= 0; i--) {
-            buf[i] = (byte) (type & 0xFF);
-            type >>>= 8;
-        }
-        return new String(buf);
-    }
 	
 	/**
 	 * Extracts region defined in DjatokaDecodeParam as BufferedImage

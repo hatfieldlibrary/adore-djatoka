@@ -24,6 +24,7 @@
 package gov.lanl.adore.djatoka.util;
 
 import gov.lanl.adore.djatoka.io.FormatConstants;
+import gov.lanl.adore.djatoka.openurl.OpenURLJP2KService;
 import ij.io.Opener;
 
 import java.awt.Graphics2D;
@@ -31,8 +32,14 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.apache.log4j.Logger;
 
 /**
  * Image Processing Utilities
@@ -40,7 +47,7 @@ import java.io.InputStream;
  *
  */
 public class ImageProcessingUtils {
-	
+	static Logger logger = Logger.getLogger(OpenURLJP2KService.class);
     /**
      * Perform a rotation of the provided BufferedImage using degrees of
      * 90, 180, or 270.
@@ -155,6 +162,20 @@ public class ImageProcessingUtils {
     
 	private static final String magic = "000c6a502020da87a";
 	
+	public final static boolean checkIfJp2(String f) {
+		boolean isJP2 = false;
+		try {
+			BufferedInputStream bi = new BufferedInputStream(new FileInputStream(new File(f)));
+			isJP2 = checkIfJp2(bi);
+			bi.close();
+		} catch (FileNotFoundException e) {
+			logger.error(e + " attempting to access: " + f);
+		} catch (IOException e) {
+			logger.error(e + " attempting to access: " + f);
+		}
+		return isJP2;
+	}
+	
 	/**
 	 * Read first 12 bytes from InputStream to determine if JP2 file.
 	 * Note: Be sure to reset your stream after calling this method.
@@ -180,6 +201,7 @@ public class ImageProcessingUtils {
 	public final static boolean isJp2Type(String mimetype) {
 		if (mimetype == null)
 			return false;
+		mimetype = mimetype.toLowerCase();
 		if (mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JP2)
 			|| mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JPX)
 			|| mimetype.equals(FormatConstants.FORMAT_MIMEYPE_JPM))
