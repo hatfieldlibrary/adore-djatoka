@@ -26,7 +26,6 @@ package gov.lanl.adore.djatoka.openurl;
 import gov.lanl.adore.djatoka.util.ImageRecord;
 import info.openurl.oom.entities.Referent;
 
-import java.util.ArrayList;
 import java.util.Properties;
 
 /**

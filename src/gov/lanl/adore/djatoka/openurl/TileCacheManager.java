@@ -26,57 +26,73 @@ package gov.lanl.adore.djatoka.openurl;
 import java.io.File;
 import java.util.*;
 
+import org.apache.log4j.Logger;
+
 /**
  * Implements an Least Recently Used (LRU) cache Manager.
  * 
  * @param max_cache
  *            the maximum cache size that will be kept in the cache.
  */
-public class TileCacheManager<K, V> {
-	private LinkedHashMap<K, V> cacheMap; // For fast search/remove
+public class TileCacheManager {
+	static Logger logger = Logger.getLogger(TileCacheManager.class);
+	private static LinkedHashMap<String, String> cacheMap; // For fast search/remove
 
-	private final int max_cache;
+	private static boolean init = false;
+
+	private static int max_cache;
 
 	private static final float loadFactor = 0.75F;
 
 	private static final boolean accessOrder = true; 
 
-	/** The class constructor */
-	public TileCacheManager(int max_cache) {
-		this.max_cache = max_cache;
-		this.cacheMap = new LinkedHashMap<K, V>(max_cache, loadFactor, accessOrder) {
+    public synchronized static void init(int size) {
+		max_cache = size;
+		cacheMap = new LinkedHashMap<String, String>(max_cache, loadFactor, accessOrder) {
 			private static final long serialVersionUID = 1;
-
-			protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-				// remove stale entries?
-				return size() > TileCacheManager.this.max_cache;
+			protected synchronized boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+				boolean d = size() > TileCacheManager.max_cache;
+				if (d) {
+					File f = new File(eldest.getValue());
+					logger.debug("deletingTile: " + eldest.getValue());
+					if (f.exists())
+						f.delete();
+					remove(eldest.getKey());
+				}
+				return false;
 			};
 		};
-	}
-
-	public synchronized V put(K key, V val) {
+		init = true;
+    }
+	
+	public synchronized static String put(String key, String val) {
 		return cacheMap.put(key, val);
 	}
 
-	public synchronized V remove(K key) {
-		if (get(key) instanceof java.io.File)
-			((File) get(key)).delete();
+	public synchronized static String remove(String key) {
+		File f = new File(get(key));
+		if (f.exists())
+			f.delete();
 		return cacheMap.remove(key);
 	}
 
-	public synchronized V get(K key) {
+	public static String get(String key) {
 		return cacheMap.get(key);
 	}
 
-	public synchronized boolean containsKey(K key) {
+	public static boolean containsKey(String key) {
 		return cacheMap.containsKey(key);
 	}
 
-	public synchronized int size() {
+	public synchronized static int size() {
 		return cacheMap.size();
 	}
 
-	public synchronized void clear() {
+	public synchronized static void clear() {
 		cacheMap.clear();
+	}
+	
+	public synchronized static boolean isInit() {
+		return init;
 	}
 }

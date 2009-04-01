@@ -83,7 +83,6 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 	private static boolean transformCheck = false;
 	private static ITransformPlugIn transform;
 	private static String cacheDir = null;
-	private static TileCacheManager<String, String> tileCache;
 	private static DjatokaExtractProcessor extractor;
 	private static int maxPixels = DEFAULT_CACHE_MAXPIXELS;
 	
@@ -106,9 +105,9 @@ public class OpenURLJP2KService implements Service, FormatConstants {
                 cacheDir = props.getProperty(PROPS_KEY_CACHE_TMPDIR);
                 if (props.getProperty(PROPS_KEY_CACHE_ENABLED) != null) 
                 	cacheTiles = Boolean.parseBoolean(props.getProperty(PROPS_KEY_CACHE_ENABLED));
-                if (cacheTiles) {
+                if (cacheTiles && !TileCacheManager.isInit()) {
                 	int cacheSize = Integer.parseInt(props.getProperty(PROPS_KEY_CACHE_SIZE,DEFAULT_CACHE_SIZE));
-                    tileCache = new TileCacheManager<String, String>(cacheSize);
+                	TileCacheManager.init(cacheSize);
                 }
                 if (props.getProperty(PROPS_KEY_TRANSFORM) != null) {
                 	transformCheck = true;
@@ -238,7 +237,7 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 					} else {
 						String ext = getExtension(format);
 						String hash = getTileHash(r, params);
-						String file = tileCache.get(hash + ext);
+						String file = TileCacheManager.get(hash + ext);
 						File f;
 						if (file == null || 
 								(file != null 
@@ -253,11 +252,10 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 										+ hash.hashCode() + "-", "." + ext);
 							f.deleteOnExit();
 							file = f.getAbsolutePath();
-							extractor.extractImage(r.getImageFile(), file,
-									params, format);
+							extractor.extractImage(r.getImageFile(), file, params, format);
+							TileCacheManager.put(hash + ext, file);
 							bytes = IOUtils.getBytesFromFile(f);
 							logger.debug("makingTile: " + file + " " + bytes.length);
-							tileCache.put(hash + ext, file);
 						} else {
 							bytes = IOUtils.getBytesFromFile(new File(file));
 							logger.debug("tileCache: " + file + " " + bytes.length);

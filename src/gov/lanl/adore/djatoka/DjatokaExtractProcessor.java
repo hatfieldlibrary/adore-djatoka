@@ -30,6 +30,7 @@ import gov.lanl.adore.djatoka.util.IOUtils;
 import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -160,7 +161,7 @@ public class DjatokaExtractProcessor {
 			if (params.getTransform() != null)
 				bi = params.getTransform().run(bi);
 			try {
-				FileOutputStream os = new FileOutputStream(new File(dest));
+				BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(new File(dest)));
 				w.write(bi, os);
 				os.close();
 			} catch (FileNotFoundException e) {

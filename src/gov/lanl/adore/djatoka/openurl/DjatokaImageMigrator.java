@@ -90,6 +90,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 			logger.info("processingRemoteURI: " + uri.toURL());
 			processing.add(uri.toString());
 			File urlLocal = null;
+			boolean isJp2 = false;
 			// Obtain Resource
 			InputStream src = IOUtils.getInputStream(uri.toURL());
 			String ext = uri.toURL().toString().substring(uri.toURL().toString().lastIndexOf(".") + 1).toLowerCase();
@@ -97,6 +98,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 				urlLocal = File.createTempFile("convert" + uri.hashCode(), "." + FORMAT_ID_TIF);
 			} else if (formatMap.containsKey(ext) && (formatMap.get(ext).equals(FORMAT_MIMEYPE_JP2) || formatMap.get(ext).equals(FORMAT_MIMEYPE_JPX))) {
 				urlLocal = File.createTempFile("cache" + uri.hashCode(), "."  + ext);
+				isJp2 = true;
 			} else {
                 if (src.markSupported())
                     src.mark(15);
@@ -122,9 +124,9 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 			IOUtils.copyStream(src, dest);
 			
 			// Process Image
-			urlLocal = processImage(urlLocal, uri);
+			if (!isJp2)
+			    urlLocal = processImage(urlLocal, uri);
 
-			
 			// Clean-up
 			src.close();
 			dest.close();

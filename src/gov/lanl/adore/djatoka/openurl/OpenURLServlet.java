@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
  * @author Ryan Chute
  */
 public class OpenURLServlet extends HttpServlet {
-	static Logger logger = Logger.getLogger(DjatokaImageMigrator.class);
+	static Logger logger = Logger.getLogger(OpenURLServlet.class);
     /**
      * Initial version
      */
