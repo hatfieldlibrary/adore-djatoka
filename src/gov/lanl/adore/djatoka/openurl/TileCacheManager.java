@@ -34,26 +34,28 @@ import org.apache.log4j.Logger;
  * @param max_cache
  *            the maximum cache size that will be kept in the cache.
  */
-public class TileCacheManager {
+public class TileCacheManager<K, V> {
 	static Logger logger = Logger.getLogger(TileCacheManager.class);
-	private static LinkedHashMap<String, String> cacheMap; // For fast search/remove
 
-	private static boolean init = false;
+	private LinkedHashMap<K, V> cacheMap; // For fast search/remove
 
-	private static int max_cache;
+	private final int max_cache;
 
 	private static final float loadFactor = 0.75F;
 
 	private static final boolean accessOrder = true; 
 
-    public synchronized static void init(int size) {
-		max_cache = size;
-		cacheMap = new LinkedHashMap<String, String>(max_cache, loadFactor, accessOrder) {
+	/** The class constructor */
+	public TileCacheManager(int max_cache) {
+		this.max_cache = max_cache;
+		this.cacheMap = new LinkedHashMap<K, V>(max_cache, loadFactor, accessOrder) {
 			private static final long serialVersionUID = 1;
-			protected synchronized boolean removeEldestEntry(Map.Entry<String, String> eldest) {
-				boolean d = size() > TileCacheManager.max_cache;
+
+			protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+				logger.debug("cacheSize: " + size());
+				boolean d = size() > TileCacheManager.this.max_cache;
 				if (d) {
-					File f = new File(eldest.getValue());
+					File f = new File((String) eldest.getValue());
 					logger.debug("deletingTile: " + eldest.getValue());
 					if (f.exists())
 						f.delete();
@@ -62,37 +64,31 @@ public class TileCacheManager {
 				return false;
 			};
 		};
-		init = true;
-    }
-	
-	public synchronized static String put(String key, String val) {
+	}
+
+	public synchronized V put(K key, V val) {
 		return cacheMap.put(key, val);
 	}
 
-	public synchronized static String remove(String key) {
-		File f = new File(get(key));
-		if (f.exists())
-			f.delete();
+	public synchronized V remove(K key) {
+		if (get(key) instanceof String)
+			(new File((String) get(key))).delete();
 		return cacheMap.remove(key);
 	}
 
-	public static String get(String key) {
+	public synchronized V get(K key) {
 		return cacheMap.get(key);
 	}
 
-	public static boolean containsKey(String key) {
+	public synchronized boolean containsKey(K key) {
 		return cacheMap.containsKey(key);
 	}
 
-	public synchronized static int size() {
+	public synchronized int size() {
 		return cacheMap.size();
 	}
 
-	public synchronized static void clear() {
+	public synchronized void clear() {
 		cacheMap.clear();
-	}
-	
-	public synchronized static boolean isInit() {
-		return init;
 	}
 }
