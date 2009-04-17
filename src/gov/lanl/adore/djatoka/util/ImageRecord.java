@@ -233,7 +233,7 @@ public class ImageRecord {
     /**
 	 * Sets InputStream, ByteArray, URL, etc.
 	 * 
-	 * @param the
+	 * @param object
 	 *            object to be resolved by another process
 	 */
 	public void setObject(Object object) {

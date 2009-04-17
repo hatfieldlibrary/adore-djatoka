@@ -129,12 +129,26 @@ public class ImageProcessingUtils {
 	/**
 	 * Scale provided BufferedImage to the specified width and height dimensions.
 	 * If a provided dimension is 0, the aspect ratio is used to calculate a value.
+	 * Also, if either contains -1, the positive value will be used as for the long
+	 * side.
 	 * @param bi BufferedImage to be scaled.
 	 * @param w width the image is to be scaled to.
 	 * @param h height the image is to be scaled to.
 	 * @return scaled instance of provided BufferedImage
 	 */
     public static BufferedImage scale(BufferedImage bi, int w, int h) {
+    	// If either w,h are -1, then calculate based on long side.
+    	if (w == -1 || h == -1) {
+    		int tl = Math.max(w, h);
+    		if (bi.getWidth() > bi.getHeight()) {
+    			w = tl;
+    			h = 0;
+    		} else {
+    		    h = tl;
+    		    w = 0;
+    		}
+    	}
+    	// Calculate dim. based on aspect ratio
     	if (w == 0 || h == 0) {
     		if (w == 0 && h == 0)
     			return bi;

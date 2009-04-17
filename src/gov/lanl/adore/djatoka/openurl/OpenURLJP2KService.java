@@ -168,9 +168,14 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			params.setRotationDegree(Integer.parseInt(kev.get("rotate")));
 		if (kev.containsKey("scale")) {
 			String[] v = kev.get("scale").split(",");
-			if (v.length == 1)
-			    params.setScalingFactor(Double.parseDouble(kev.get("scale")));
-			else if (v.length == 2) {
+			if (v.length == 1) {
+				if (v[0].contains("."))
+					params.setScalingFactor(Double.parseDouble(v[0]));
+				else {
+					int[] dims = new int[]{-1,Integer.parseInt(v[0])};
+					params.setScalingDimensions(dims);
+				}
+			} else if (v.length == 2) {
 				int[] dims = new int[]{Integer.parseInt(v[0]),Integer.parseInt(v[1])};
 				params.setScalingDimensions(dims);
 			}

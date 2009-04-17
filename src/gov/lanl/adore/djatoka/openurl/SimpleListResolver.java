@@ -29,7 +29,9 @@ import java.io.FileReader;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
@@ -53,7 +55,7 @@ import info.openurl.oom.entities.Referent;
 public class SimpleListResolver implements IReferentResolver {
 	static Logger logger = Logger.getLogger(SimpleListResolver.class);
 	private static final String PROP_IMGS_INDEX = "SimpleListResolver.imgIndexFile";
-	private static LinkedHashMap<String, ImageRecord> imgs;
+	private static Map<String, ImageRecord> imgs;
 	private static IReferentMigrator dim = new DjatokaImageMigrator();
 	
 	/**
@@ -166,8 +168,8 @@ public class SimpleListResolver implements IReferentResolver {
 			return HttpServletResponse.SC_NOT_FOUND;
 	}
 	
-	private static LinkedHashMap<String, ImageRecord> getRecordMap(String f) throws Exception {
-		LinkedHashMap<String, ImageRecord> map = new LinkedHashMap<String, ImageRecord>(16, 0.75f, true);
+	private static Map<String, ImageRecord> getRecordMap(String f) throws Exception {
+		Map<String, ImageRecord> map = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true));
 		BufferedReader reader = new BufferedReader(new FileReader(f));
 		String row = null;
 		for (int line = 0; true; line++) {
