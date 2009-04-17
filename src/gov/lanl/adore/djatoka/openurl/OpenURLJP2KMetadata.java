@@ -27,6 +27,7 @@ import gov.lanl.adore.djatoka.IExtract;
 import gov.lanl.adore.djatoka.io.FormatConstants;
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
 import gov.lanl.adore.djatoka.util.IOUtils;
+import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 import gov.lanl.adore.djatoka.util.ImageRecord;
 import gov.lanl.util.HttpDate;
 import info.openurl.oom.ContextObject;
@@ -48,12 +49,15 @@ import java.util.Properties;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+
 /**
  * The OpenURLJP2KMetadata OpenURL Service
  * 
  * @author Ryan Chute
  */
 public class OpenURLJP2KMetadata implements Service, FormatConstants {
+	static Logger logger = Logger.getLogger(OpenURLJP2KMetadata.class);
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_KEY_IMPL_CLASS = "OpenURLJP2KService.referentResolverImpl";
 	private static final String SVC_ID = "info:lanl-repo/svc/getMetadata";
@@ -115,7 +119,8 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 			sb.append("\n\"imagefile\": \"" + r.getImageFile() + "\",");
 			sb.append("\n\"width\": \"" + r.getWidth() + "\",");
 			sb.append("\n\"height\": \"" + r.getHeight() + "\",");
-			sb.append("\n\"levels\": \"" + r.getLevels() + "\",");
+			sb.append("\n\"dwtLevels\": \"" + r.getLevels() + "\",");
+			sb.append("\n\"levels\": \"" + ImageProcessingUtils.getLevelCount(r.getWidth() , r.getHeight()) + "\",");
 			sb.append("\n\"compositingLayerCount\": \"" + r.getCompositingLayerCount() + "\"");
 			sb.append("\n}");
 			baos.write(sb.toString().getBytes());
@@ -124,8 +129,10 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 			try {
 				if (e.getMessage() != null)
 				    baos.write(e.getMessage().getBytes("UTF-8"));
-				else
+				else {
+					logger.error(e,e);
 					baos.write("Internal Server Error: ".getBytes());
+				}
 			} catch (UnsupportedEncodingException e1) {
 				e1.printStackTrace();
 			} catch (IOException e2) {
