@@ -15,7 +15,7 @@
                 <service ID="info:lanl-repo/svc/getRegion">
                         <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2KService</className>
                         <args>
-                                <props>OpenURLJP2KService.properties</props>
+                                <props>djatoka.properties</props>
                         </args>
                 </service>
         </serviceMap>
@@ -23,7 +23,7 @@
                 <service ID="info:lanl-repo/svc/getMetadata">
                         <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2KMetadata</className>
                         <args>
-                                <props>OpenURLJP2KService.properties</props>
+                                <props>djatoka.properties</props>
                         </args>
                 </service>
         </serviceMap>
@@ -31,7 +31,7 @@
                 <service ID="info:lanl-repo/svc/getJP2XML">
                         <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2XML</className>
                         <args>
-                                <props>OpenURLJP2KService.properties</props>
+                                <props>djatoka.properties</props>
                         </args>
                 </service>
         </serviceMap>
@@ -39,7 +39,7 @@
                 <service ID="info:lanl-repo/svc/ping">
                         <className>gov.lanl.adore.djatoka.openurl.OpenURLJP2Ping</className>
                         <args>
-                                <props>OpenURLJP2KService.properties</props>
+                                <props>djatoka.properties</props>
                         </args>
                 </service>
         </serviceMap>
