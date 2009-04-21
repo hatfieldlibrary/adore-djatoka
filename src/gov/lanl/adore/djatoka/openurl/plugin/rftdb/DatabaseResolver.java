@@ -53,12 +53,12 @@ import org.apache.log4j.Logger;
  * to map the unique identifier and file path to 'identifier' and 'imageFile'
  * 
  * ----- OpenURLJP2KService.properties -----
- * OpenURLJP2KService.referentResolverImpl=gov.lanl.adore.djatoka.openurl.plugin.rftdb.ImageRecordManager
- * ImageRecordManager.url=jdbc:mysql://localhost/djatoka
- * ImageRecordManager.driver=com.mysql.jdbc.Driver
- * ImageRecordManager.login=root
- * ImageRecordManager.pwd=
- * ImageRecordManager.query=SELECT identifier, imageFile FROM resources WHERE identifier='\\i';
+ * OpenURLJP2KService.referentResolverImpl=gov.lanl.adore.djatoka.openurl.plugin.rftdb.DatabaseResolver
+ * DatabaseResolver.url=jdbc:mysql://localhost/djatoka
+ * DatabaseResolver.driver=com.mysql.jdbc.Driver
+ * DatabaseResolver.login=root
+ * DatabaseResolver.pwd=
+ * DatabaseResolver.query=SELECT identifier, imageFile FROM resources WHERE identifier='\\i';
  * 
  *  ----- DEFAULT SCHEMA -----
  * CREATE TABLE `resources` (
@@ -71,9 +71,9 @@ import org.apache.log4j.Logger;
  * @author Ryan Chute
  *
  */
-public class ImageRecordManager implements IReferentResolver {
-	static Logger log = Logger.getLogger(ImageRecordManager.class.getName());
-	public static final String DEFAULT_DBID = "ImageRecordManager";
+public class DatabaseResolver implements IReferentResolver {
+	static Logger log = Logger.getLogger(DatabaseResolver.class.getName());
+	public static final String DEFAULT_DBID = "DatabaseResolver";
 	public static final String FIELD_IDENTIFIER = "identifier";
 	public static final String FIELD_IMAGEFILE = "imageFile";
 	public static final String REPLACE_ID_KEY = "\\i";
