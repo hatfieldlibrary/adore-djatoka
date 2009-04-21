@@ -283,7 +283,8 @@ public class KduCompressExe implements ICompress {
 		boolean tmp = false;
 		File inputFile = null;
 		if (!input.toLowerCase().endsWith(".tif")
-				&& !input.toLowerCase().endsWith(".tiff")) {
+				&& !input.toLowerCase().endsWith(".tiff")
+				  && !ImageProcessingUtils.checkIfTiff(input)) {
 			try {
 				inputFile = IOUtils.createTempTiff(input);
 				tmp = true;
@@ -293,6 +294,7 @@ public class KduCompressExe implements ICompress {
 						+ e.getMessage());
 			}
 		} else {
+			logger.debug("Processing TIFF: " + input);
 			inputFile = new File(input);
 		}
 
