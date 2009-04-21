@@ -224,4 +224,8 @@ public class ImageProcessingUtils {
 			return false;
 			
 	}
+	
+	public final static boolean checkIfTiff(String file) {
+		return new Opener().getFileType(file) == Opener.TIFF;
+	}
 }
