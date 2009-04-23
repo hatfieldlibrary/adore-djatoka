@@ -76,7 +76,7 @@ public class KduCompressExe implements ICompress {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
-		logger.debug("envParams: " + envParams[0] + " | " + exe );
+		logger.debug("envParams: " + ((envParams != null) ? envParams[0] + " | " : "") + exe );
 	}
 
 	/**

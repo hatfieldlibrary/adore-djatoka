@@ -27,7 +27,6 @@ import gov.lanl.adore.djatoka.DjatokaDecodeParam;
 import gov.lanl.adore.djatoka.DjatokaException;
 import gov.lanl.adore.djatoka.IExtract;
 import gov.lanl.adore.djatoka.io.reader.PNMReader;
-import gov.lanl.adore.djatoka.kdu.jni.KduCompressedSource;
 import gov.lanl.adore.djatoka.util.IOUtils;
 import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 import gov.lanl.adore.djatoka.util.ImageRecord;
@@ -48,12 +47,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-import org.apache.log4j.Logger;
-
 import kdu_jni.Jp2_family_src;
-import kdu_jni.Jp2_input_box;
-import kdu_jni.Jp2_locator;
-import kdu_jni.Jpx_input_box;
 import kdu_jni.Jpx_source;
 import kdu_jni.KduException;
 import kdu_jni.Kdu_codestream;
@@ -61,6 +55,8 @@ import kdu_jni.Kdu_coords;
 import kdu_jni.Kdu_dims;
 import kdu_jni.Kdu_global;
 import kdu_jni.Kdu_params;
+
+import org.apache.log4j.Logger;
 
 /**
  * Java bridge for kdu_expand application
@@ -99,7 +95,7 @@ public class KduExtractExe implements IExtract {
 			envParams = new String[] { "LD_LIBRARY_PATH="
 					+ System.getProperty("LD_LIBRARY_PATH") };
 		}
-		logger.debug("envParams: " + envParams[0] + " | " + exe );
+		logger.debug("envParams: " + ((envParams != null) ? envParams[0] + " | " : "") + exe );
 	}
 
 	/**
