@@ -288,9 +288,8 @@ public class KduExtractExe implements IExtract {
 			throws DjatokaException {
 		if (input.getImageFile() != null)
 			return process(input, params);
-		else if (input.getObject() != null
-				&& (input.getObject() instanceof InputStream))
-			return process((InputStream) input.getObject(), params);
+		else if (input.getObject() != null)
+			return process(getStreamFromObject(input.getObject()), params);
 		else {
 			throw new DjatokaException(
 					"File not defined and Input Object Type "
@@ -334,8 +333,11 @@ public class KduExtractExe implements IExtract {
 	 * @throws DjatokaException
 	 */
 	public final ImageRecord getMetadata(ImageRecord r) throws DjatokaException {
-		if (r.getImageFile() == null && r.getObject() != null)
-			return getMetadata((InputStream) r.getObject());
+		if (r.getImageFile() == null && r.getObject() != null) {
+			ImageRecord ir = getMetadata(getStreamFromObject(r.getObject()));
+			ir.setObject(r.getObject());
+			return ir;
+		}
 		if (!new File(r.getImageFile()).exists())
 			throw new DjatokaException("Image Does Not Exist");
 		if (!ImageProcessingUtils.checkIfJp2(r.getImageFile()))
@@ -362,7 +364,8 @@ public class KduExtractExe implements IExtract {
 			
 			r.setWidth(imageSize.Get_x());
 			r.setHeight(imageSize.Get_y());
-			r.setLevels(minLevels);
+			r.setDWTLevels(minLevels);
+			r.setLevels(ImageProcessingUtils.getLevelCount(r.getWidth() , r.getHeight()));
 			r.setBitDepth(depth);
 			r.setNumChannels(colors);
 			r.setCompositingLayerCount(frames[0]);
@@ -408,9 +411,8 @@ public class KduExtractExe implements IExtract {
 	public final String[] getXMLBox(ImageRecord r) throws DjatokaException {
 		String[] xml = null;
 		try {
-			if (r.getImageFile() == null && r.getObject() != null
-					&& r.getObject() instanceof InputStream) {
-				xml = new JP2ImageInfo((InputStream) r.getObject()).getXmlDocs();
+			if (r.getImageFile() == null && r.getObject() != null) {
+				xml = new JP2ImageInfo(getStreamFromObject(r.getObject())).getXmlDocs();
 			} else {
 				xml = new JP2ImageInfo(new File(r.getImageFile())).getXmlDocs();
 			}
@@ -418,6 +420,23 @@ public class KduExtractExe implements IExtract {
 			logger.error(e, e);
 		}
 		return xml;
+	}
+	
+	/**
+	 * Utility method to determine type of object stored in ImageRecord
+	 * and to return it as an InputStream
+	 * @param o
+	 * @return an InputStream for the resource contained in ImageRecord object
+	 */
+	public static InputStream getStreamFromObject(Object o) {
+		if (o instanceof BufferedInputStream)
+			return (InputStream) o;
+		if (o instanceof InputStream)
+			return new BufferedInputStream((InputStream) o);
+		if (o instanceof byte[])
+			return new ByteArrayInputStream((byte[]) o);
+		logger.error(o.getClass().getName() + " is not a supported ImageRecord object type.");
+		return null;
 	}
 	
 	private final ArrayList<Double> getRegionMetadata(InputStream input,
@@ -436,8 +455,17 @@ public class KduExtractExe implements IExtract {
 			throws DjatokaException {
 		if (params.getLevel() >= 0) {
 			int levels = ImageProcessingUtils.getLevelCount(r.getWidth(), r.getHeight());
-			levels = (r.getLevels() < levels) ? r.getLevels() : levels;
+			levels = (r.getDWTLevels() < levels) ? r.getDWTLevels() : levels;
 			int reduce = levels - params.getLevel();
+			params.setLevelReductionFactor((reduce >= 0) ? reduce : 0);
+		} else if (params.getLevel() == -1 && params.getRegion() == null && params.getScalingDimensions() != null) {
+			int width = params.getScalingDimensions()[0];
+			int height = params.getScalingDimensions()[1];
+			int levels = ImageProcessingUtils.getLevelCount(r.getWidth(), r.getHeight());
+			int scale_level = ImageProcessingUtils.getScalingLevel(r.getWidth(), r.getHeight(), width, height);
+			levels = (r.getDWTLevels() < levels) ? r.getDWTLevels() : levels;
+			int reduce = levels - scale_level;
+			System.out.println(reduce);
 			params.setLevelReductionFactor((reduce >= 0) ? reduce : 0);
 		}
 		

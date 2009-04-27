@@ -61,6 +61,7 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
     private static final String DEFAULT_IMPL_CLASS = SimpleListResolver.class.getCanonicalName();
     private static final String PROPS_KEY_IMPL_CLASS = "OpenURLJP2KService.referentResolverImpl";
 	private static final String SVC_ID = "info:lanl-repo/svc/getMetadata";
+	private static final String RESPONSE_TYPE = "application/json";
 	
 	private static String implClass = null;
 	private static Properties props = new Properties();
@@ -105,7 +106,7 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 			ContextObject contextObject, OpenURLRequest openURLRequest,
 			OpenURLRequestProcessor processor) {
 
-		String responseFormat = null;
+		String responseFormat = RESPONSE_TYPE;
 		int status = HttpServletResponse.SC_OK;
 		ByteArrayOutputStream baos =  new ByteArrayOutputStream();
 	    try {
@@ -119,8 +120,8 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 			sb.append("\n\"imagefile\": \"" + r.getImageFile() + "\",");
 			sb.append("\n\"width\": \"" + r.getWidth() + "\",");
 			sb.append("\n\"height\": \"" + r.getHeight() + "\",");
-			sb.append("\n\"dwtLevels\": \"" + r.getLevels() + "\",");
-			sb.append("\n\"levels\": \"" + ImageProcessingUtils.getLevelCount(r.getWidth() , r.getHeight()) + "\",");
+			sb.append("\n\"dwtLevels\": \"" + r.getDWTLevels() + "\",");
+			sb.append("\n\"levels\": \"" + r.getLevels() + "\",");
 			sb.append("\n\"compositingLayerCount\": \"" + r.getCompositingLayerCount() + "\"");
 			sb.append("\n}");
 			baos.write(sb.toString().getBytes());

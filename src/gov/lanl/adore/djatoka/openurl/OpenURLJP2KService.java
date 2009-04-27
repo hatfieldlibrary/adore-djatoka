@@ -208,12 +208,6 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			try {
 				ImageRecord r = ReferentManager.getImageRecord(contextObject.getReferent());
 				if (r != null) {
-					if (logger.isInfoEnabled() && contextObject.getRequesters().length > 0
-							&& contextObject.getRequesters()[0]
-									.getDescriptors().length > 0) {
-					    String requester = contextObject.getRequesters()[0].getDescriptors()[0].toString();
-					    logger.info("requester: " + r.getIdentifier() + " " + requester);
-					}
 					if (transformCheck && transform != null) {
 						HashMap<String, String> instProps = new HashMap<String, String>();
 						if (r.getInstProps() != null)
@@ -299,6 +293,8 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 	
 	private boolean isCacheable(DjatokaDecodeParam params) {
 		if (transformCheck && params.getTransform().isTransformable())
+			return false;
+		if (params.getScalingDimensions() != null || params.getScalingFactor() != 1.0)
 			return false;
 		if (params.getRegion() != null) {
 			String[] r = params.getRegion().split(",");

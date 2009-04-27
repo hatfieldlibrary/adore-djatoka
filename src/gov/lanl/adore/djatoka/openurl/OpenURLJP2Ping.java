@@ -57,7 +57,7 @@ public class OpenURLJP2Ping implements Service, FormatConstants {
 	private static final String SVC_ID = "info:lanl-repo/svc/ping";
 	private static final String STATUS_OK = "OK";
 	private static final String STATUS_ACCEPTED = "PROCESSING";
-	private static final String RESPONSE_TYPE = "text/plain";
+	private static final String RESPONSE_TYPE = "application/json";
 	
 	private static String implClass = null;
 	private static Properties props = new Properties();

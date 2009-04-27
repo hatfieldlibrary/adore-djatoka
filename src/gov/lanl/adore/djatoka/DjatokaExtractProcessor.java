@@ -246,15 +246,15 @@ public class DjatokaExtractProcessor {
 	private static BufferedImage applyScaling(BufferedImage bi, DjatokaDecodeParam params) {
 		if (params.getScalingFactor() != 1.0 
 				&& params.getScalingFactor() > 0 
-				&& params.getScalingFactor() < 2)
+				&& params.getScalingFactor() < 3)
 			bi = ImageProcessingUtils.scale(bi,params.getScalingFactor());
 		else if (params.getScalingDimensions() != null 
 				&& params.getScalingDimensions().length == 2) {
 			int width = params.getScalingDimensions()[0];
-			if (width >= 2 * bi.getWidth())
+			if (width >= 3 * bi.getWidth())
 				return bi;
 			int height = params.getScalingDimensions()[1];
-			if (height >= 2 * bi.getHeight())
+			if (height >= 3 * bi.getHeight())
 				return bi;
 			bi = ImageProcessingUtils.scale(bi, width, height);
 		}

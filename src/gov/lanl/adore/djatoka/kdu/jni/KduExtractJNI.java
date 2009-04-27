@@ -92,7 +92,7 @@ public class KduExtractJNI implements IExtract {
 			
 			r.setWidth(imageSize.Get_x());
 			r.setHeight(imageSize.Get_y());
-			r.setLevels(minLevels);
+			r.setDWTLevels(minLevels);
 
 			channels.Native_destroy();
 			if (codestream.Exists())

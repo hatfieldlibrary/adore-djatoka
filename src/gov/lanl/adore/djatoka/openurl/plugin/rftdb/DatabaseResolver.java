@@ -134,7 +134,7 @@ public class DatabaseResolver implements IReferentResolver {
 		remoteImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true));
 		localImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true){		
 			private static final int MAX_ENTRIES = 100;
-			protected boolean removeEldestEntry(Map.Entry eldest) {System.out.print(size());return size() > MAX_ENTRIES;}
+			protected boolean removeEldestEntry(Map.Entry eldest) {return size() > MAX_ENTRIES;}
 		}); 
 
 		query = props.getProperty(DEFAULT_DBID + ".query");

@@ -37,6 +37,7 @@ public class ImageRecord {
 	private int width;
 	private int height;
 	private int levels;
+	private int dwtLevels;
 	private int qualityLayers;
 	private int compositingLayers;
 	private int bitDepth;
@@ -131,21 +132,37 @@ public class ImageRecord {
 	}
 	
 	/**
-	 * Returns the number of resolution levels
-	 * @return the number of resolution levels
+	 * Returns the number of dwt levels
+	 * @return the number of dwt levels
+	 */
+	public int getDWTLevels() {
+		return dwtLevels;
+	}
+	
+	/**
+	 * Sets the number of dwt levels
+	 * @param dwtLevels the number of dwt levels
+	 */
+	public void setDWTLevels(int dwtLevels) {
+		this.dwtLevels = dwtLevels;
+	}
+
+	/**
+	 * Returns the number of djatoka resolution levels
+	 * @return the number of djatoka resolution levels
 	 */
 	public int getLevels() {
 		return levels;
 	}
 	
 	/**
-	 * Sets the number of resolution levels
-	 * @param levels the number of resolution levels
+	 * Sets the number of djatoka resolution levels
+	 * @param levels the number of djatoka resolution levels
 	 */
 	public void setLevels(int levels) {
 		this.levels = levels;
 	}
-
+	
 	/**
 	 * Returns a map of properties associated with the image. The properties may
 	 * be used transformation processes down the line.
@@ -245,5 +262,24 @@ public class ImageRecord {
 	 */
 	public Object getObject() {
 		return object;
+	}
+	
+	public String toString() {
+	    StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		sb.append("\n\"identifier\": \"" + identifier + "\",");
+		sb.append("\n\"imageFile\": \"" + imageFile + "\",");
+		sb.append("\n\"object\": \"" + ((object != null) ? "type= " + object.getClass().getCanonicalName() : null) + "\",");
+		sb.append("\n\"width\": \"" + width + "\",");
+		sb.append("\n\"height\": \"" + height + "\",");
+		sb.append("\n\"dwtLevels\": \"" + dwtLevels + "\",");
+		sb.append("\n\"levels\": \"" + levels + "\",");
+		sb.append("\n\"qualityLayers\": \"" + qualityLayers + "\",");
+		sb.append("\n\"compositingLayers\": \"" + compositingLayers + "\",");
+		sb.append("\n\"bitDepth\": \"" + bitDepth + "\",");
+		sb.append("\n\"numChannels\": \"" + numChannels + "\",");
+		sb.append("\n\"instProps\": \"" + ((instProps != null) ? "size= " + instProps.size() : null) + "\"");
+		sb.append("\n}");
+	    return sb.toString();
 	}
 }

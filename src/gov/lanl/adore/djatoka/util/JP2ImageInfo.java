@@ -40,6 +40,7 @@ public class JP2ImageInfo implements JP2Markers {
 
 	public JP2ImageInfo(File f) throws IOException {
 		this(new BufferedInputStream(new FileInputStream(f)));
+		ir.setImageFile(f.getAbsolutePath());
 	}
 	
 	public JP2ImageInfo(InputStream is) throws IOException {
@@ -268,7 +269,8 @@ public class JP2ImageInfo implements JP2Markers {
 				ir.setQualityLayers(sgcod_layers);
 				int sgcod_ctrans = read(1); // Component Transformation Type
 				int sgcod_levels = read(1); // Number of levels
-				ir.setLevels(sgcod_levels);
+				ir.setDWTLevels(sgcod_levels);
+				ir.setLevels(ImageProcessingUtils.getLevelCount(ir.getWidth() , ir.getHeight()));
 				int sgcod_cb_width = read(1); // code-block width
 				int sgcod_cb_height = read(1); // code-block height
 				int sgcod_cb_style = read(1); // code-block style
@@ -282,11 +284,8 @@ public class JP2ImageInfo implements JP2Markers {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		long a = System.currentTimeMillis();
-		FileInputStream fis = new FileInputStream(new File(args[0]));
-		BufferedInputStream bis = new BufferedInputStream(fis);
-		JP2ImageInfo jp2 = new JP2ImageInfo(bis);
+		JP2ImageInfo jp2 = new JP2ImageInfo(new File(args[0]));
 		ImageRecord ir = jp2.getImageRecord();
-		System.out.println("getImageInfo: " + (System.currentTimeMillis() - a));
+		System.out.println(ir.toString());
 	}
 }

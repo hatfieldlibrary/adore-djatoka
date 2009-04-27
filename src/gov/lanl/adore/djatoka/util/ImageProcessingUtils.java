@@ -115,6 +115,27 @@ public class ImageProcessingUtils {
 	}
 	
 	/**
+	 * Return the resolution level the djatoka API will use to extract
+	 * an image for scaling.
+	 * @param w max pixel width
+	 * @param h max pixel height
+	 * @param out_w max pixel width
+	 * @param out_h max pixel height
+	 */
+	public static int getScalingLevel(int w, int h, int out_w, int out_h) {
+		int levels = getLevelCount(w, h);
+		int max_source = Math.max(w, h);
+		int max_out = Math.max(out_w, out_h);
+		int r = levels + 2;
+		int i = max_source;
+		while (i >= max_out) {
+			i = i / 2;
+			r--;
+		}
+		return r;
+	}
+	
+	/**
 	 * Scale provided BufferedImage by the provided factor.
 	 * A scaling factor value should be greater than 0 and less than 2.
 	 * Note that scaling will impact performance and image quality.
