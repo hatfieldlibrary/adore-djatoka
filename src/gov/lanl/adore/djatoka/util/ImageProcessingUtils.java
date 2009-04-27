@@ -31,6 +31,8 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -121,9 +123,8 @@ public class ImageProcessingUtils {
 	 * @return scaled instance of provided BufferedImage
 	 */
 	public static BufferedImage scale(BufferedImage bi, double scale) {
-		int w = (int)Math.ceil(bi.getWidth() * scale);
-		int h = (int)Math.ceil(bi.getHeight() * scale);
-		return scale(bi, w, h);
+		AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(scale, scale), null);
+		return op.filter(bi, null);
 	}	
 	
 	/**
@@ -161,17 +162,9 @@ public class ImageProcessingUtils {
     		    h = (int)Math.ceil(bi.getHeight() * n);
     		}
     	}
-		final Image scaledImage = bi.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-		final int type = (bi.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
-		BufferedImage bImg = new BufferedImage(w, h, type);
-		Graphics2D graphics = bImg.createGraphics();
-		graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-		graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		graphics.drawImage(scaledImage, null, null);
-		graphics.dispose();
-		scaledImage.flush();
-		bi.flush();
-		return bImg;
+		double scaleH = new Double(h) / new Double(bi.getHeight());
+		double scaleW = new Double(w) / new Double(bi.getWidth());
+		return scale(bi, Math.min(scaleH, scaleW));
 	}
     
 	private static final String magic = "000c6a502020da87a";
