@@ -365,7 +365,8 @@ public class KduExtractExe implements IExtract {
 			r.setWidth(imageSize.Get_x());
 			r.setHeight(imageSize.Get_y());
 			r.setDWTLevels(minLevels);
-			r.setLevels(ImageProcessingUtils.getLevelCount(r.getWidth() , r.getHeight()));
+			int djatokaLevels = ImageProcessingUtils.getLevelCount(r.getWidth() , r.getHeight());
+			r.setLevels((djatokaLevels > minLevels) ? minLevels : djatokaLevels); 
 			r.setBitDepth(depth);
 			r.setNumChannels(colors);
 			r.setCompositingLayerCount(frames[0]);
@@ -408,6 +409,11 @@ public class KduExtractExe implements IExtract {
 		return info.getImageRecord();
 	}
 	
+	/**
+	 * Returns array of XMLBox records contained in JP2 resource.
+	 * @param r an ImageRecord containing a file path to resource or has object defined
+	 * @return an array of XML records contained in JP2 XMLboxes
+	 */
 	public final String[] getXMLBox(ImageRecord r) throws DjatokaException {
 		String[] xml = null;
 		try {

@@ -36,6 +36,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 
+import net.sf.ij.jaiio.JAIReader;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -54,7 +56,7 @@ public class ImageJReader implements IReader {
 	public BufferedImage open(InputStream input) throws FormatIOException {
 		Opener o = new Opener();
 		BufferedImage bi = null;
-		// Most of the time we're dealing with TIF so just go direct
+		// Most of the time we're dealing with TIF so try direct
 		ImagePlus imp = o.openTiff(input, "tif");
 		// Otherwise, we'll just stay in ImageJ but just provide a file path
 		if (imp == null) {
@@ -77,13 +79,14 @@ public class ImageJReader implements IReader {
 	 * @throws FormatIOException
 	 */
 	public BufferedImage open(String input) throws FormatIOException {
-		Opener o = new Opener();
-		return open(o.openImage(input));
-	}
-	
-	public ImagePlus getImagePlus(String input) throws FormatIOException {
-		Opener o = new Opener();
-		return o.openImage(input);
+		ImagePlus ip;
+		try {
+			ip = JAIReader.read(new File(input))[0];
+		} catch (Exception e) {
+			logger.error(e,e);
+			throw new FormatIOException(e);
+		}
+		return open(ip);
 	}
 	
 	/**

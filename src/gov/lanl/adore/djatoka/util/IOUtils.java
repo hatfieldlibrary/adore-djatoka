@@ -23,7 +23,7 @@
 
 package gov.lanl.adore.djatoka.util;
 
-import gov.lanl.adore.djatoka.io.reader.ImageJReader;
+import gov.lanl.adore.djatoka.io.reader.DjatokaReader;
 import gov.lanl.adore.djatoka.io.writer.TIFWriter;
 
 import java.awt.image.BufferedImage;
@@ -31,6 +31,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,10 +40,8 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Properties;
-
-import ij.ImagePlus;
-import ij.io.FileSaver;
 
 /**
  * General Utilities for i/o operations in djatoka
@@ -51,13 +50,23 @@ import ij.io.FileSaver;
  */
 public class IOUtils {
 	
+	/**
+	 * Create temporary tiff file from provided image file.
+	 * @param input Absolute path to image file to be converted to tiff.
+	 * @return File object for temporary image file
+	 * @throws Exception a I/O or Unsupported format exception 
+	 */
 	public static File createTempTiff(String input) throws Exception {
-		ImagePlus imp = new ImageJReader().getImagePlus(input);
-		File tmp = File.createTempFile("tmp", ".tif");
-		new FileSaver(imp).saveAsTiff(tmp.getAbsolutePath());
-		return tmp;
+		BufferedImage bi = new DjatokaReader().open(input);
+		return createTempTiff(bi);
 	}
 	
+	/**
+	 * Create temporary tiff file from provided InputStream.  
+	 * Returns null if exception occurs.
+	 * @param input InputStream containing a image bitstream
+	 * @return File object for temporary image file
+	 */
 	public static File createTempImage(InputStream input) {
 		File output = null;
     	OutputStream out = null;
@@ -79,6 +88,11 @@ public class IOUtils {
 		return output;
 	}
 	
+	/**
+	 * Create temporary tiff file from provided BufferedImage object  
+	 * @param bi BufferedImage containing raster data
+	 * @return File object for temporary image file
+	 */
 	public static File createTempTiff(BufferedImage bi) throws Exception {
 		TIFWriter w = new TIFWriter();
 		File f = File.createTempFile("tmp", ".tif");
@@ -89,6 +103,12 @@ public class IOUtils {
 		return f;
 	}
 	
+	/**
+	 * Gets an InputStream object for provide URL location
+	 * @param location File, http, or ftp URL to open connection and obtain InputStream
+	 * @return InputStream containing the requested resource
+	 * @throws Exception
+	 */
     public static InputStream getInputStream(URL location) throws Exception {
         InputStream in = null;
         if (location.getProtocol().equals("file")) {
@@ -267,6 +287,35 @@ public class IOUtils {
         } else {
             return loadProperty(in);
         }
-
+    }
+    
+    /**
+     * Gets a ArrayList of File objects provided a dir or file path.
+     * @param filePath
+     *        Absolute path to file or directory
+     * @param fileFilter
+     *        Filter dir content by extention; allows "null"
+     * @param recursive
+     *        Recursively search for files
+     * @return
+     *        ArrayList of File objects matching specified criteria.
+     */
+    public static ArrayList<File> getFileList(String filePath, FileFilter fileFilter, boolean recursive) {
+        ArrayList<File> files = new ArrayList<File>();
+        File file = new File(filePath);
+        if (file.exists() && file.isDirectory()) {
+            File[] fa = file.listFiles(fileFilter);
+            for (int i = 0; i < fa.length; i++) {
+                if (fa[i].isFile())
+                  files.add(fa[i]);
+                else if (recursive && fa[i].isDirectory())
+                  files.addAll(getFileList(fa[i].getAbsolutePath(), fileFilter, recursive));
+            }
+        }
+        else if (file.exists() && file.isFile()) {
+            files.add(file);
+        }
+        
+        return files;
     }
 }

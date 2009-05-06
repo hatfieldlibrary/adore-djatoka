@@ -47,11 +47,11 @@ public interface JP2Markers {
 	public static final int MARKER_JPIP = 1785751920; // 0x6a706970
 	public static final int MARKER_JPLH = 1785752680; // 0x6a706c68
 	public static final byte[] MARKER_JPLH_BIN = "jplh".getBytes();
-	public static final int MARKER_RES_BOX = 1919251232; // 0x72657320 - ‘res  ’
+	public static final int MARKER_RES_BOX = 1919251232; // 0x72657320 - 'res'
 	public static final int MARKER_RREQ = 1920099697; // 0x72726571
-	public static final int MARKER_URL = 1970433056; // 0x75726c20 - ‘url\040’ 
-	public static final int MARKER_UUID = 1970628964; // 0x75756964 - ‘uuid’
-	public static final int MARKER_XML = 2020437002; // 0x786D6C0A - ‘xml\040’
+	public static final int MARKER_URL = 1970433056; // 0x75726c20 - 'url\040' 
+	public static final int MARKER_UUID = 1970628964; // 0x75756964 - 'uuid'
+	public static final int MARKER_XML = 2020437002; // 0x786D6C0A - 'xml\040'
 	
 	// Delimiting marker segments
 	public static final int MARKER_SOC = 65359; // 0xFF4F - Start of codestream 

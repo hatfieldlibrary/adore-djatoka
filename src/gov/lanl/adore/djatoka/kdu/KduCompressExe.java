@@ -211,8 +211,8 @@ public class KduCompressExe implements ICompress {
 				dim = null;
 			}
 		} catch (IOException e1) {
-			logger.error("Unexpected file format; expecting TIFF",e1);
-			throw new DjatokaException("Unexpected file format; expecting TIFF");
+			logger.error("Unexpected file format; expecting uncompressed TIFF",e1);
+			throw new DjatokaException("Unexpected file format; expecting uncompressed TIFF");
 		}
 
 		String out = STDOUT;
@@ -282,21 +282,21 @@ public class KduCompressExe implements ICompress {
 			params = new DjatokaEncodeParam();
 		boolean tmp = false;
 		File inputFile = null;
-		if (!input.toLowerCase().endsWith(".tif")
-				&& !input.toLowerCase().endsWith(".tiff")
-				  && !ImageProcessingUtils.checkIfTiff(input)) {
+		if ((input.toLowerCase().endsWith(".tif")
+				|| input.toLowerCase().endsWith(".tiff")
+				|| ImageProcessingUtils.checkIfTiff(input))
+				&& ImageProcessingUtils.isUncompressedTiff(input)) {
+			logger.debug("Processing TIFF: " + input);
+			inputFile = new File(input);
+		} else {
 			try {
 				inputFile = IOUtils.createTempTiff(input);
 				tmp = true;
 				input = inputFile.getAbsolutePath();
 			} catch (Exception e) {
-				throw new DjatokaException("Unrecognized file format: "
-						+ e.getMessage());
+				throw new DjatokaException("Unrecognized file format: " + e.getMessage());
 			}
-		} else {
-			logger.debug("Processing TIFF: " + input);
-			inputFile = new File(input);
-		}
+		} 
 
 		if (params.getLevels() == 0) {
 			ImageRecord dim = ImageRecordUtils.getImageDimensions(inputFile.getAbsolutePath());

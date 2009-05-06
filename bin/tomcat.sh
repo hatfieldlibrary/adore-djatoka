@@ -6,7 +6,7 @@
 #echo $DYLD_LIBRARY_PATH
 #echo $KAKADU_HOME
 
-if [ "x" == "x$CATALINA_HOME" ]; then
+if [ "x" = "x$CATALINA_HOME" ]; then
    echo "CATALINA_HOME not defined, set system variable and try again"
    exit
 fi

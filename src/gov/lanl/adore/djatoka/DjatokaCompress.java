@@ -23,6 +23,8 @@
 
 package gov.lanl.adore.djatoka;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -31,9 +33,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Logger;
 
 import gov.lanl.adore.djatoka.kdu.KduCompressExe;
 import gov.lanl.adore.djatoka.util.IOUtils;
+import gov.lanl.adore.djatoka.util.SourceImageFileFilter;
 
 /**
  * Compression Application
@@ -41,7 +45,7 @@ import gov.lanl.adore.djatoka.util.IOUtils;
  *
  */
 public class DjatokaCompress {
-	
+	static Logger logger = Logger.getLogger(DjatokaCompress.class);
 	/**
 	 * Uses apache commons cli to parse input args. Passes parsed
 	 * parameters to ICompress implementation.
@@ -116,23 +120,59 @@ public class DjatokaCompress {
 		    	p.setCodeBlockSize(Cblk);
 		    String alt = line.getOptionValue("a");
 		    
-		    if(output == null)
-		    	output = input + ".jp2";
-		    
-			long x = System.currentTimeMillis();
 			ICompress jp2 = new KduCompressExe();
 			if (alt != null)
 				jp2 = (ICompress) Class.forName(alt).newInstance();
-			jp2.compressImage(input, output, p);
-			System.out.println("Compression Time: " + ((double) (System.currentTimeMillis() - x) / 1000) + " seconds");
+			if (new File(input).isDirectory() && new File(output).isDirectory()) {
+				ArrayList<File> files = IOUtils.getFileList(input, new SourceImageFileFilter(), false);
+				for (File f : files) {
+				    long x = System.currentTimeMillis();
+				    File outFile = new File(output, f.getName().substring(0, f.getName().indexOf(".")) + ".jp2");
+				    compress(jp2, f.getAbsolutePath(), outFile.getAbsolutePath(), p);
+			        report(f.getAbsolutePath(), x);
+				}
+			} else {
+				long x = System.currentTimeMillis();
+		    	File f = new File(input);
+			    if (output == null)
+			    	output = f.getName().substring(0, f.getName().indexOf(".")) + ".jp2";
+			    if (new File(output).isDirectory())
+			    	output = output + f.getName().substring(0, f.getName().indexOf(".")) + ".jp2";
+			    compress(jp2, input, output, p);
+			    report(input, x);
+			}
 		} catch( ParseException e ) {
-		    System.out.println( "Parse exception:" + e.getMessage() );
+		    logger.error( "Parse exception:" + e.getMessage(), e );
 		} catch (DjatokaException e) {
-			System.out.println( "djatoka Compression exception:" + e.getMessage() );
+			logger.error( "djatoka Compression exception:" + e.getMessage(), e );
 		} catch (InstantiationException e) {
-			System.out.println( "Unable to initialize alternate implemenation:" + e.getMessage() );
+			logger.error( "Unable to initialize alternate implemenation:" + e.getMessage(), e );
 		} catch (Exception e) {
-			System.out.println( "An exception occured:" + e.getMessage() );
+			logger.error( "An exception occured:" + e.getMessage(), e );
 		}
+	}
+	
+	/**
+	 * Print time, in seconds, to process resource
+	 * @param id Identifier or File Path to indicate processing resource
+	 * @param x System time in milliseconds when resource processing started
+	 */
+	public static void report(String id, long x) {
+		logger.info("Compression Time: " + ((double) (System.currentTimeMillis() - x) / 1000) + " seconds for " + id);
+	}
+	
+	/**
+	 * Simple compress wrapper to catch exceptions, useful when 
+	 * @param jp2
+	 * @param input
+	 * @param output
+	 * @param p
+	 */
+	public static void compress(ICompress jp2, String input, String output, DjatokaEncodeParam p) {
+		try {
+			jp2.compressImage(input, output, p);
+		} catch (DjatokaException e) {
+			logger.error("djatoka Compression exception:" + e.getMessage(), e);
+		} 
 	}
 }

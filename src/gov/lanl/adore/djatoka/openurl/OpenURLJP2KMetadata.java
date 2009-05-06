@@ -27,7 +27,6 @@ import gov.lanl.adore.djatoka.IExtract;
 import gov.lanl.adore.djatoka.io.FormatConstants;
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
 import gov.lanl.adore.djatoka.util.IOUtils;
-import gov.lanl.adore.djatoka.util.ImageProcessingUtils;
 import gov.lanl.adore.djatoka.util.ImageRecord;
 import gov.lanl.util.HttpDate;
 import info.openurl.oom.ContextObject;

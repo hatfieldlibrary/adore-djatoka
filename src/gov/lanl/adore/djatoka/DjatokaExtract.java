@@ -29,6 +29,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.log4j.Logger;
 
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
 
@@ -38,7 +39,7 @@ import gov.lanl.adore.djatoka.kdu.KduExtractExe;
  *
  */
 public class DjatokaExtract {
-	
+	static Logger logger = Logger.getLogger(DjatokaExtract.class);
 	/**
 	 * Uses apache commons cli to parse input args. Passes parsed
 	 * parameters to IExtract implementation.
@@ -97,16 +98,16 @@ public class DjatokaExtract {
 				ex = (IExtract) Class.forName(alt).newInstance();
 			DjatokaExtractProcessor e = new DjatokaExtractProcessor(ex);
 			e.extractImage(input, output, p, format);
-			System.out.println("Extraction Time: " + ((double) (System.currentTimeMillis() - x) / 1000) + " seconds");
+			logger.info("Extraction Time: " + ((double) (System.currentTimeMillis() - x) / 1000) + " seconds");
 		    
 		} catch( ParseException e ) {
-		    System.out.println( "Parse exception:" + e.getMessage() );
+			logger.error( "Parse exception:" + e.getMessage(), e);
 		} catch (DjatokaException e) {
-			System.out.println( "djatoka Extraction exception:" + e.getMessage() );
+			logger.error( "djatoka Extraction exception:" + e.getMessage(), e);
 		} catch (InstantiationException e) {
-			System.out.println( "Unable to initialize alternate implemenation:" + e.getMessage() );
+			logger.error( "Unable to initialize alternate implemenation:" + e.getMessage(), e);
 		} catch (Exception e) {
-			System.out.println( "Unexpected exception:" + e.getMessage() );
+			logger.error( "Unexpected exception:" + e.getMessage(), e);
 		}
 	}
 }

@@ -24,22 +24,23 @@
 package gov.lanl.adore.djatoka.util;
 
 import gov.lanl.adore.djatoka.io.FormatConstants;
-import gov.lanl.adore.djatoka.openurl.OpenURLJP2KService;
+import ij.io.FileInfo;
 import ij.io.Opener;
+import ij.io.TiffDecoder;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.RenderedImage;
+import java.awt.image.WritableRaster;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 
@@ -49,7 +50,7 @@ import org.apache.log4j.Logger;
  *
  */
 public class ImageProcessingUtils {
-	static Logger logger = Logger.getLogger(OpenURLJP2KService.class);
+	static Logger logger = Logger.getLogger(ImageProcessingUtils.class);
     /**
      * Perform a rotation of the provided BufferedImage using degrees of
      * 90, 180, or 270.
@@ -190,6 +191,11 @@ public class ImageProcessingUtils {
     
 	private static final String magic = "000c6a502020da87a";
 	
+	/**
+	 * Read first 12 bytes from File to determine if JP2 file.
+	 * @param f Path to JPEG 2000 image file
+	 * @return true is JP2 compatible format
+	 */
 	public final static boolean checkIfJp2(String f) {
 		boolean isJP2 = false;
 		try {
@@ -226,6 +232,11 @@ public class ImageProcessingUtils {
 	    return hexString.equals(magic);
 	}
 	
+	/**
+	 * Given a mimetype, indicates if mimetype is JP2 compatible.
+	 * @param mimetype mimetype to check if JP2 compatible
+	 * @return true is JP2 compatible
+	 */
 	public final static boolean isJp2Type(String mimetype) {
 		if (mimetype == null)
 			return false;
@@ -239,7 +250,59 @@ public class ImageProcessingUtils {
 			
 	}
 	
+	/**
+	 * Attempt to determine if file is a TIFF using the file header.
+	 * @param file
+	 * @return true if the file is a TIFF
+	 */
 	public final static boolean checkIfTiff(String file) {
 		return new Opener().getFileType(file) == Opener.TIFF;
+	}
+	
+	/**
+	 * Attempt to determine is file is an uncompressed TIFF
+	 * @param file File path for image to check
+	 * @return true if file is an uncompressed TIFF
+	 */
+	public static boolean isUncompressedTiff(String file) {
+		File f = new File(file);
+		FileInfo[] fi = null;
+		TiffDecoder ti = new TiffDecoder(f.getParent() + "/", f.getName());
+		try {
+			fi = ti.getTiffInfo();
+		} catch (IOException e) {
+			return false;
+		}
+		if (fi[0].compression == 1)
+		    return true;
+		else
+			return false;
+	}
+	
+	/** 
+	 * Populates a BufferedImage from a RenderedImage
+	 * Source: http://www.jguru.com/faq/view.jsp?EID=114602
+	 * @param img RenderedImage to be converted to BufferedImage
+	 * @return BufferedImage with complete raster data
+	 */
+	public static BufferedImage convertRenderedImage(RenderedImage img) {
+		if (img instanceof BufferedImage) {
+			return (BufferedImage)img;	
+		}	
+		ColorModel cm = img.getColorModel();
+		int width = img.getWidth();
+		int height = img.getHeight();
+		WritableRaster raster = cm.createCompatibleWritableRaster(width, height);
+		boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
+		Hashtable properties = new Hashtable();
+		String[] keys = img.getPropertyNames();
+		if (keys!=null) {
+			for (int i = 0; i < keys.length; i++) {
+				properties.put(keys[i], img.getProperty(keys[i]));
+			}
+		}
+		BufferedImage result = new BufferedImage(cm, raster, isAlphaPremultiplied, properties);
+		img.copyData(raster);
+		return result;
 	}
 }

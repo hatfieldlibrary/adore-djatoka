@@ -35,8 +35,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
 

@@ -31,6 +31,11 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * JPEG 2000 Metadata Parser
+ * @author Ryan Chute
+ *
+ */
 public class JP2ImageInfo implements JP2Markers {
 	private InputStream is;
 	private int currentDataLength;
@@ -270,7 +275,8 @@ public class JP2ImageInfo implements JP2Markers {
 				int sgcod_ctrans = read(1); // Component Transformation Type
 				int sgcod_levels = read(1); // Number of levels
 				ir.setDWTLevels(sgcod_levels);
-				ir.setLevels(ImageProcessingUtils.getLevelCount(ir.getWidth() , ir.getHeight()));
+				int djatokaLevels = ImageProcessingUtils.getLevelCount(ir.getWidth() , ir.getHeight());
+				ir.setLevels((djatokaLevels > sgcod_levels) ? sgcod_levels : djatokaLevels); 
 				int sgcod_cb_width = read(1); // code-block width
 				int sgcod_cb_height = read(1); // code-block height
 				int sgcod_cb_style = read(1); // code-block style

@@ -36,8 +36,9 @@
   <property name="lib.dir"      value="${basedir}/lib"/>
 
   <!-- debug/optimize settings -->
-  <property name="debug"        value="on"/>
+  <property name="debug"        value="off"/>
   <property name="optimize"     value="on"/>
+  <property name="nowarn"     value="on"/>
 
   <!-- external library packages -->
   <path id="djatoka.classpath">
@@ -66,6 +67,7 @@
            destdir="${build.dir}/classes"
            source="1.5"
            optimize="${optimize}"
+           nowarn="${nowarn}"
            debug="${debug}">
            <classpath refid="djatoka.classpath"/>
     </javac>
@@ -104,6 +106,7 @@
         </tarfileset>
         <tarfileset dir="." prefix="adore-djatoka-${version}">
             <exclude name="adore-djatoka-${version}.tar.gz"/>
+            <include name="src/gov/lanl/adore/djatoka/test/*"/>
             <include name="build.xml"/>
             <include name="README.txt"/>
             <include name="INSTALL.txt"/>

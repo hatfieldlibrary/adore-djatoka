@@ -25,7 +25,6 @@ package gov.lanl.adore.djatoka.io.writer;
 
 import gov.lanl.adore.djatoka.io.FormatIOException;
 import gov.lanl.adore.djatoka.io.IWriter;
-
 import ij.ImagePlus;
 import ij.io.TiffEncoder;
 
@@ -37,8 +36,12 @@ import java.io.OutputStream;
 import java.util.Properties;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.apache.log4j.Logger;
+
+import uk.co.mmscomputing.imageio.tiff.TIFFImageWriterSpi;
 
 import com.sun.media.jai.codec.ImageCodec;
 import com.sun.media.jai.codec.ImageEncoder;
@@ -62,6 +65,7 @@ public class TIFWriter implements IWriter {
 		writeUsingImageIO(bi, os);
 		//writeUsingJAI(bi, os);
 		//writeUsingImageJ(bi, os);
+		//writeUsingMMCComputingImageIO(bi, os);
 	}
 	
 	private void writeUsingImageJ(BufferedImage bi, OutputStream os) throws FormatIOException {
@@ -122,6 +126,31 @@ public class TIFWriter implements IWriter {
 			}
 		} 
 	}
+	
+    private void writeUsingMMCComputingImageIO(BufferedImage bi, OutputStream os) throws FormatIOException {
+        TIFFImageWriterSpi tiffspi = new TIFFImageWriterSpi();
+        ImageOutputStream ios = null;
+        ImageWriter writer;
+        try {
+            writer = tiffspi.createWriterInstance();
+            ios = ImageIO.createImageOutputStream(os);
+            writer.setOutput(ios);
+            writer.write(bi);
+        } catch (IOException e) {
+            logger.error(e,e);
+        } finally {
+            if (ios != null) {
+                try {
+                    ios.flush();
+                    ios.close();
+                } catch (IOException e) {
+                    logger.error(e,e);
+                    throw new FormatIOException(e);
+                }
+            }
+        }
+
+    } 
 	
 	/**
 	 * NOT SUPPORTED. 

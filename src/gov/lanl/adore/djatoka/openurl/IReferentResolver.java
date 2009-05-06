@@ -23,7 +23,6 @@
 
 package gov.lanl.adore.djatoka.openurl;
 
-import java.util.ArrayList;
 import java.util.Properties;
 
 import gov.lanl.adore.djatoka.util.ImageRecord;
@@ -37,7 +36,7 @@ import info.openurl.oom.entities.Referent;
 public interface IReferentResolver {
 	
 	/**
-	 * Referent Identifer to be resolved from Identifier Resolver. The returned
+	 * Referent Identifier to be resolved from Identifier Resolver. The returned
 	 * ImageRecord need only contain the imageId and image file path.
 	 * @param rftId identifier of the image to be resolved
 	 * @return ImageRecord instance containing resolvable metadata

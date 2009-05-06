@@ -28,15 +28,24 @@ elif [ `uname` = 'Darwin' ] ; then
   export DYLD_LIBRARY_PATH="$LIBPATH/$PLATFORM"
   KAKADU_LIBRARY_PATH="-DDYLD_LIBRARY_PATH=$LIBPATH/$PLATFORM"
 elif [ `uname` = 'SunOS' ] ; then
-  PLATFORM="Solaris-Sparc"
-  LD_LIBRARY_PATH="$LIBPATH/$PLATFORM:$LD_LIBRARY_PATH"
-  export LD_LIBRARY_PATH
+  if [ `uname -p` = "i386" ] ; then
+    # Assume Solaris x86
+    PLATFORM="Solaris-x86"
+    LD_LIBRARY_PATH="$LIBPATH/$PLATFORM"
+    export LD_LIBRARY_PATH
+  else
+    # Sparcv9
+    PLATFORM="Solaris-Sparcv9"
+    LD_LIBRARY_PATH="$LIBPATH/$PLATFORM"
+    export LD_LIBRARY_PATH
+  fi
 else
   echo "djatoka env: Unsupported platform: `uname`"
   exit
 fi
 
-export KAKADU_HOME=$DJATOKA_HOME/bin/$PLATFORM
+KAKADU_HOME=$DJATOKA_HOME/bin/$PLATFORM
+export KAKADU_HOME
 cd $LAUNCHDIR
 for line in `ls -1 $LIBPATH | grep '.jar'`
   do
