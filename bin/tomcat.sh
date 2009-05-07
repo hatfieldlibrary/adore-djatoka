@@ -13,6 +13,7 @@ fi
 
 export JAVA_OPTS
 
+rm -f $CATALINA_HOME/temp/*
 $CATALINA_HOME/bin/catalina.sh $*
 
 exit 0

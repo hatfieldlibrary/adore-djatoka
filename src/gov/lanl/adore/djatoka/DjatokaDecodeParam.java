@@ -187,4 +187,23 @@ public class DjatokaDecodeParam implements DjatokaConstants {
 	public void setScalingDimensions(int[] scalingDims) {
 		this.scalingDims = scalingDims;
 	}
+	
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		sb.append("\"reduce\": \"" + reduce+ "\", ");
+		sb.append("\"level\": \"" + level + "\", ");
+		sb.append("\"region\": \"" + region + "\", ");
+		sb.append("\"rotate\": \"" + rotate + "\", ");
+		sb.append("\"scalingFactor\": \"" + scalingFactor + "\", ");
+		if (scalingDims == null || scalingDims.length == 0) 
+			sb.append("\"scalingDims\": \"\", ");
+		else if (scalingDims != null && scalingDims.length == 1) 
+			sb.append("\"scalingDims\": \"" + scalingDims[0] + "\", ");
+		else if (scalingDims != null && scalingDims.length == 2) 
+			sb.append("\"scalingDims\": \"" + scalingDims[0] + "," + scalingDims[1] + "\", ");
+		sb.append("\"compLayer\": \"" + compLayer + "\" ");
+		sb.append("}");
+		return sb.toString();
+	}
 }

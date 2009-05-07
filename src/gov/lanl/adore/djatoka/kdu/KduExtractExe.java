@@ -232,8 +232,7 @@ public class KduExtractExe implements IExtract {
 					if (output.equals(STDOUT)) {
 						bi = new PNMReader().open(new BufferedInputStream(process.getInputStream()));
 					} else if (isWindows) {
-						// Windows tests indicated need for delay (< 100ms failed)
-						Thread.sleep(100);
+						process.waitFor();
 						try {
 							bi = new PNMReader().open(new BufferedInputStream(new FileInputStream(new File(output))));
 						} catch (Exception e) {
@@ -333,6 +332,8 @@ public class KduExtractExe implements IExtract {
 	 * @throws DjatokaException
 	 */
 	public final ImageRecord getMetadata(ImageRecord r) throws DjatokaException {
+		if (r == null)
+			throw new DjatokaException("ImageRecord is null");
 		if (r.getImageFile() == null && r.getObject() != null) {
 			ImageRecord ir = getMetadata(getStreamFromObject(r.getObject()));
 			ir.setObject(r.getObject());

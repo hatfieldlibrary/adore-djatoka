@@ -23,6 +23,7 @@
 
 package gov.lanl.adore.djatoka.openurl;
 
+import gov.lanl.adore.djatoka.DjatokaException;
 import gov.lanl.adore.djatoka.IExtract;
 import gov.lanl.adore.djatoka.io.FormatConstants;
 import gov.lanl.adore.djatoka.kdu.KduExtractExe;
@@ -124,7 +125,10 @@ public class OpenURLJP2KMetadata implements Service, FormatConstants {
 			sb.append("\n\"compositingLayerCount\": \"" + r.getCompositingLayerCount() + "\"");
 			sb.append("\n}");
 			baos.write(sb.toString().getBytes());
-		} catch (Exception e) {
+		} catch (DjatokaException e) {
+			responseFormat = "text/plain";
+			status = HttpServletResponse.SC_NOT_FOUND;
+	    } catch (Exception e) {
 			baos = new ByteArrayOutputStream();
 			try {
 				if (e.getMessage() != null)

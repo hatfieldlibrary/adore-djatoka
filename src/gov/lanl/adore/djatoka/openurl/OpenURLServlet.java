@@ -15,10 +15,12 @@ import info.openurl.oom.OpenURLRequestProcessor;
 import info.openurl.oom.OpenURLResponse;
 import info.openurl.oom.Transport;
 import info.openurl.oom.config.OpenURLConfig;
+import gov.lanl.util.AccessManager;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -48,6 +50,7 @@ public class OpenURLServlet extends HttpServlet {
     private OpenURLConfig openURLConfig;
     private OpenURLRequestProcessor processor;
     private Transport[] transports;
+    private AccessManager am;
     
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
@@ -61,6 +64,12 @@ public class OpenURLServlet extends HttpServlet {
             
             // Construct a processor
             processor = openURLConfig.getProcessor();
+            
+            ClassLoader cl = OpenURLServlet.class.getClassLoader();
+            java.net.URL url = cl.getResource("access.txt");
+            if (url != null)
+            	am = new AccessManager(url.getFile());
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new ServletException(e.getMessage(), e);
@@ -86,6 +95,23 @@ public class OpenURLServlet extends HttpServlet {
                         "Invalid Request");
                 return;
             }
+            // 2009-05-06: rchute Add AccessManager Support
+            if (am != null) {
+            	try {
+            		String url = ((java.net.URI)  openURLRequest.getContextObjects()[0].getReferent().getDescriptors()[0]).toASCIIString();
+            		if (url.startsWith("http") || url.startsWith("ftp")) {
+            			if (!am.checkAccess(new URL(url).getHost())){
+            				int status = HttpServletResponse.SC_FORBIDDEN;
+            				resp.sendError(status);
+            				return;
+            			}
+            		}
+            	} catch (Exception e) {
+            		logger.error(e);
+            	}
+             
+            }
+            
             // rchute: Add referrer for possible extension processing
             if (req.getHeader("referer") != null)
                 openURLRequest.getContextObjects()[0].getReferringEntities()[0].addDescriptor(req.getHeader("referer"));

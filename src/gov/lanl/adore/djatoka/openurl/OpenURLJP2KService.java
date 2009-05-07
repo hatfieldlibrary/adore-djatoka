@@ -253,9 +253,16 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 							f.deleteOnExit();
 							file = f.getAbsolutePath();
 							extractor.extractImage(r.getImageFile(), file, params, format);
-							tileCache.put(hash + ext, file);
-							bytes = IOUtils.getBytesFromFile(f);
-							logger.debug("makingTile: " + file + " " + bytes.length);
+							if (tileCache.get(hash + ext) == null) {
+								tileCache.put(hash + ext, file);
+								bytes = IOUtils.getBytesFromFile(f);
+								logger.debug("makingTile: " + file + " " + bytes.length + " params: " + params);
+							} else {
+								// Handles simultaneous request on separate thread, ignores cache.
+								bytes = IOUtils.getBytesFromFile(f);
+								f.delete();
+								logger.debug("tempTile: " + file + " " + bytes.length + " params: " + params);
+							}
 						} else {
 							bytes = IOUtils.getBytesFromFile(new File(file));
 							logger.debug("tileCache: " + file + " " + bytes.length);
@@ -294,8 +301,15 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 	private boolean isCacheable(DjatokaDecodeParam params) {
 		if (transformCheck && params.getTransform().isTransformable())
 			return false;
-		if (params.getScalingDimensions() != null || params.getScalingFactor() != 1.0)
+		if (params.getScalingFactor() != 1.0)
 			return false;
+		if (params.getScalingDimensions() != null) {
+			int[] sd = params.getScalingDimensions();
+			if (sd.length == 1 && sd[0] >= maxPixels/2) 
+				return false;
+			if (sd.length == 2 && (sd[0] * sd[1]) >= maxPixels) 
+				return false;
+		}
 		if (params.getRegion() != null) {
 			String[] r = params.getRegion().split(",");
 			if (r.length == 4) {

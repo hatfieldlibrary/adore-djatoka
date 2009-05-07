@@ -36,7 +36,7 @@
   <property name="lib.dir"      value="${basedir}/lib"/>
 
   <!-- debug/optimize settings -->
-  <property name="debug"        value="off"/>
+  <property name="debug"        value="on"/>
   <property name="optimize"     value="on"/>
   <property name="nowarn"     value="on"/>
 

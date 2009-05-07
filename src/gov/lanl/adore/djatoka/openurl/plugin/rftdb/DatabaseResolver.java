@@ -213,9 +213,9 @@ public class DatabaseResolver implements IReferentResolver {
 					throw new ResolverException(
 							"An error occurred processing file:"
 									+ uri.toURL().toString());
-			} catch (Exception e) {
-				log.error(e, e);
-				throw new ResolverException(e);
+		    } catch (Exception e) {
+				log.error("Unable to access " + rftId);
+		    	return null;
 			}
 		}
 		return ir;
