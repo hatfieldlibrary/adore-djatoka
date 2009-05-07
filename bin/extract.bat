@@ -32,7 +32,7 @@ goto djatokahomeerror
 :okHome
 rem Get standard djatoka environment variables
 set JAVA_OPTS=-Djava.awt.headless=true  -Xmx512M -Xms64M -Dkakadu.home="%KAKADU_HOME%" -Djava.library.path="%KAKADU_HOME%"
-set CLASSPATH=.;%DJATOKA_HOME%\lib\adore-djatoka-1.1.jar;%DJATOKA_HOME%\lib\commons-cli-1.1.jar;%DJATOKA_HOME%\lib\ij.jar;%DJATOKA_HOME%\lib\jai_codec.jar;%DJATOKA_HOME%\lib\jai_core.jar;%DJATOKA_HOME%\lib\kdu_jni.jar;%DJATOKA_HOME%\lib\log4j-1.2.8.jar;%DJATOKA_HOME%\lib\mlibwrapper_jai.jar;%DJATOKA_HOME%\lib\oom.jar;%DJATOKA_HOME%\lib\oomRef.jar
+set CLASSPATH=.;%DJATOKA_HOME%\lib\adore-djatoka-1.1.jar;%DJATOKA_HOME%\lib\commons-cli-1.1.jar;%DJATOKA_HOME%\lib\ij.jar;%DJATOKA_HOME%\lib\jai_codec.jar;%DJATOKA_HOME%\lib\jai_core.jar;%DJATOKA_HOME%\lib\kdu_jni.jar;%DJATOKA_HOME%\lib\log4j-1.2.8.jar;%DJATOKA_HOME%\lib\mlibwrapper_jai.jar;%DJATOKA_HOME%\lib\oom.jar;%DJATOKA_HOME%\lib\oomRef.jar;%DJATOKA_HOME%\lib\uk.co.mmscomputing.imageio.tiff.jar;%DJATOKA_HOME%\lib\ij-ImageIO.jar
 rem ----- Execute Command ---------------------------------------
 "%JAVA_HOME%\bin\java.exe" %JAVA_OPTS% -classpath "%CLASSPATH%" gov.lanl.adore.djatoka.DjatokaExtract %*
 goto end
