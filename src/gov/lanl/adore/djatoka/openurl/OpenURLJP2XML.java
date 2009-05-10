@@ -110,14 +110,16 @@ public class OpenURLJP2XML implements Service, FormatConstants {
 			String[] xml = jp2.getXMLBox(r);
 			StringBuffer sb = new StringBuffer("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
             sb.append("<jp2:JP2XML xmlns:jp2=\"http://library.lanl.gov/2008-11/aDORe/JP2XML/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  xsi:schemaLocation=\"http://library.lanl.gov/2008-11/aDORe/JP2XML/ http://purl.lanl.gov/aDORe/schemas/2008-11/JP2XML.xsd\"");            
-            sb.append(" boxCount=\"" + xml.length + "\">");
-			for (String x : xml) {
-				sb.append("<jp2:XMLBox>");
-				if (x.contains("<?xml"))
-				    sb.append(x.substring(x.indexOf(">") + 1));
-				else
-					sb.append(x);
-			    sb.append("</jp2:XMLBox>");
+            sb.append(" boxCount=\"" + ((xml != null) ? xml.length : 0) + "\">");
+			if (xml != null) {
+				for (String x : xml) {
+					sb.append("<jp2:XMLBox>");
+					if (x.contains("<?xml"))
+						sb.append(x.substring(x.indexOf(">") + 1));
+					else
+						sb.append(x);
+					sb.append("</jp2:XMLBox>");
+				}
 			}
 			sb.append("</jp2:JP2XML>");
 			baos.write(sb.toString().getBytes());
