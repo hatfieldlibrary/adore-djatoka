@@ -312,7 +312,7 @@ public class KduExtractExe implements IExtract {
 			command.append(" -no_seek");
 		command.append(" -quiet -i ").append(escape(new File(input).getAbsolutePath()));
 		command.append(" -o ").append(escape(new File(output).getAbsolutePath()));
-		command.append(" ").append(toKduCompressArgs(params));
+		command.append(" ").append(toKduExtractArgs(params));
 		if (dims != null && dims.size() == 4) {
 			StringBuffer region = new StringBuffer();
 			region.append("{").append(dims.get(0)).append(",").append(
@@ -527,7 +527,7 @@ public class KduExtractExe implements IExtract {
         return bi;
 	}
 	
-	private static String toKduCompressArgs(DjatokaDecodeParam params) {
+	private static String toKduExtractArgs(DjatokaDecodeParam params) {
 		StringBuffer sb = new StringBuffer();
 	    if (params.getLevelReductionFactor() > 0)
 	        sb.append("-reduce ").append(params.getLevelReductionFactor()).append(" ");

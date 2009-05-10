@@ -4,12 +4,14 @@ adore-djatoka-1.1 Installation Notes
 1. Requirements
 -------------------------------
 * Sun Java 1.5+
-* Tomcat 5.*
+* Tomcat 5+
 * Currently Supported OS/Hardware: 
 - Linux-x86-32 
 - Linux-x86-64
 - Mac OS-X Intel
-- Solaris-sparc (32 bit support only)
+- Solaris-sparc
+- Solaris Sparcv9
+- Solaris x86
 - Windows-i586
 
 -------------------------------
@@ -80,7 +82,37 @@ will resolve the rft_id (e.g. info:lanl-repo/ds/CB_TM_QQ432) to a local file pat
 6. Enter an identifier for one of your images defined in imgIndex.txt. 
 
 -------------------------------
-5. Explore
+5. Windows Installation Instructions
+-------------------------------
+1. Download the adore-djatoka archive to a directory of your choosing.
+2. Extract the adore-djatoka-1.0 dir from the archive using an archive utility (e.g. WinZip).
+3. In a cmd.exe prompt, cd to the %install_dir%/adore-djatoka-1.1/bin/ directory.
+4. Check that java.exe is in your PATH (e.g. java -version) and that you are using a Sun JVM. If this doesn't work, you'll need to add %JAVA_HOME%/bin to your path.
+5. Set/Verify the follow environment variables:
+JAVA_HOME       Required: Must point at your Java Development Kit installation.
+  e.g. set JAVA_HOME=C:\Documents and Settings\208183\java
+DJATOKA_HOME    Required: Must point at your djatoka installation.
+  e.g. set DJATOKA_HOME=C:\Documents and Settings\208183\adore-djatoka-1.1
+KAKADU_HOME     Required: Must point at your Kakadu installation. Also, you'll  need to add KAKADU_HOME to your system PATH variable.
+  e.g. set KAKADU_HOME=C:\Documents and Settings\208183\adore-djatoka-1.1\bin\Win32
+  e.g. set PATH=%PATH%;%KAKADU_HOME%
+6. Execute the following "compress.bat -i ../etc/test.jpg -o
+../etc/test.jp2" to verify that compression.
+7. Execute the following "extract.sh -i ../etc/test.jp2 -o
+../etc/test-size1.jpg -l 1" to verify that extraction.
+8. Next "cd ../etc/" and perform a "dir" to verify that test-size1.jpg
+exists and can be opened using an image viewer.
+
+Then onto Tomcat...
+9. Set/Verify the follow environment variable:
+CATALINA_HOME   Required: Must point at your Tomcat installation.
+  e.g. set CATALINA_HOME=C:\Documents and Settings\208183\tomcat
+10. Copy ../dist/adore-djatoka.war to $CATALINA_HOME/webapps/
+11. From the adore-djatoka-1.1/bin directory run "tomcat.bat". This should launch Tomcat in a new window.
+12. In a browser, open 'http://localhost:8080/adore-djatoka/'. Verify that the BaseURL is correct, and click the 'Update Image' button.  This will download the an LoC American Memory Image from 'http://memory.loc.gov/gmd/gmd433/g4330/g4330/np000066.jp2' and extract a 500 x 500 region from the JP2 file and return a JPG version on the image in the response.
+
+-------------------------------
+6. Explore
 -------------------------------
 adore-djatoka-*.* 
 |- bin - Contains image compression and extraction utilities and binaries

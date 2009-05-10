@@ -12,10 +12,12 @@ The following arch/platforms are supported:
 * Linux x86_32
 * Linux x86_64
 * Solaris Sparc (32bit)
+* Solaris Sparcv9
+* Solaris x86
 * Mac OS-X (Intel)
 * Windows-i586
 
-Please contact me if you'd like to help with managing the djatoka versions of the Kakadu Libraries.  Developers who would like to obtain the Kakadu Software source code modifications used in djatoka will need to purchase a license from  Kakadu Software <http://www.kakadusoftware.com/>.  Non-Commerical licenses can be purchased for AUD $ 250. 
+Please contact me if you'd like to help with managing the djatoka versions of the Kakadu Libraries.  Developers who would like to obtain the Kakadu Software source code modifications used in djatoka will need to purchase a license from Kakadu Software <http://www.kakadusoftware.com/>.  Non-Commerical licenses can be purchased for AUD $ 250. 
 
 Thanks,
 Ryan

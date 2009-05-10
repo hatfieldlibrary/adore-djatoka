@@ -57,8 +57,8 @@ public class DjatokaCompress {
 
 		// create the Options
 		Options options = new Options();
-		options.addOption( "i", "input", true, "Filepath of the input file." );
-		options.addOption( "o", "output", true, "Filepath of the output file." );
+		options.addOption( "i", "input", true, "Filepath of the input file or dir." );
+		options.addOption( "o", "output", true, "Filepath of the output file or dir." );
 		options.addOption( "r", "rate", true, "Absolute Compression Ratio" );
 		options.addOption( "s", "slope", true, "Used to generate relative compression ratio based on content characteristics." );
 		options.addOption( "y", "Clayers", true, "Number of quality levels." );

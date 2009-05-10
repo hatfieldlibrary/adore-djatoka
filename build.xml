@@ -106,7 +106,7 @@
         </tarfileset>
         <tarfileset dir="." prefix="adore-djatoka-${version}">
             <exclude name="adore-djatoka-${version}.tar.gz"/>
-            <include name="src/gov/lanl/adore/djatoka/test/*"/>
+            <exclude name="src/gov/lanl/adore/djatoka/test/"/>
             <include name="build.xml"/>
             <include name="README.txt"/>
             <include name="INSTALL.txt"/>
@@ -136,6 +136,7 @@
              additionalparam="-breakiterator">
       <packageset dir="${src.dir}">
          <exclude name="kdu_jni"/>
+         <exclude name="gov/lanl/adore/djatoka/test/"/>
       </packageset>
     </javadoc>
   </target>
