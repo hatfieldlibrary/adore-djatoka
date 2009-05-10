@@ -56,6 +56,8 @@ public class DjatokaExtract {
 		options.addOption( "l", "level", true, "Resolution level to extract." );
 		options.addOption( "d", "reduce", true, "Resolution levels to subtract from max resolution." );
 		options.addOption( "r", "region", true, "Format: Y,X,H,W. " );
+		options.addOption( "c", "cLayer", true, "Compositing Layer Index." );
+		options.addOption( "s", "scale", true, "Format: Option 1. Define a long-side dimension (e.g. 96); Option 2. Define absolute w,h values (e.g. 1024,768); Option 3. Define a single dimension (e.g. 1024,0) with or without Level Parameter; Option 4. Use a single decimal scaling factor (e.g. 0.854)");
 		options.addOption( "t", "rotate", true, "Number of degrees to rotate image (i.e. 90, 180, 270)." );
 		options.addOption( "f", "format", true, "Mimetype of the image format to be provided as response. Default: image/jpeg" );
 		options.addOption( "a", "AltImpl", true, "Alternate IExtract Implemenation" );
@@ -82,6 +84,27 @@ public class DjatokaExtract {
 		    String region = line.getOptionValue("r");
 		    if (region != null)
 		    	p.setRegion(region);
+		    String cl = line.getOptionValue("c");
+		    if (cl != null) {
+				int clayer = Integer.parseInt(cl);
+				if (clayer > 0)
+				    p.setCompositingLayer(clayer);
+		    }
+		    String scale = line.getOptionValue("s");
+		    if (scale != null) {
+				String[] v = scale.split(",");
+				if (v.length == 1) {
+					if (v[0].contains("."))
+						p.setScalingFactor(Double.parseDouble(v[0]));
+					else {
+						int[] dims = new int[]{-1,Integer.parseInt(v[0])};
+						p.setScalingDimensions(dims);
+					}
+				} else if (v.length == 2) {
+					int[] dims = new int[]{Integer.parseInt(v[0]),Integer.parseInt(v[1])};
+					p.setScalingDimensions(dims);
+				}
+		    }
 		    String rotate = line.getOptionValue("t");
 		    if (rotate != null)
 		    	p.setRotationDegree(Integer.parseInt(rotate));
