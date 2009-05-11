@@ -233,6 +233,8 @@ public class KduExtractExe implements IExtract {
 						bi = new PNMReader().open(new BufferedInputStream(process.getInputStream()));
 					} else if (isWindows) {
 						process.waitFor();
+						// Windows tests indicated need for delay (< 100ms failed)
+						Thread.sleep(100);
 						try {
 							bi = new PNMReader().open(new BufferedInputStream(new FileInputStream(new File(output))));
 						} catch (Exception e) {

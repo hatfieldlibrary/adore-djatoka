@@ -20,5 +20,5 @@ The following arch/platforms are supported:
 Please contact me if you'd like to help with managing the djatoka versions of the Kakadu Libraries.  Developers who would like to obtain the Kakadu Software source code modifications used in djatoka will need to purchase a license from Kakadu Software <http://www.kakadusoftware.com/>.  Non-Commerical licenses can be purchased for AUD $ 250. 
 
 Thanks,
-Ryan
-rchute at lanl gov
+Ryan Chute
+rchute at users.sourceforge.net
