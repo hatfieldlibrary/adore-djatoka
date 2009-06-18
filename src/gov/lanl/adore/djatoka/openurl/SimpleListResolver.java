@@ -55,8 +55,13 @@ import info.openurl.oom.entities.Referent;
 public class SimpleListResolver implements IReferentResolver {
 	static Logger logger = Logger.getLogger(SimpleListResolver.class);
 	private static final String PROP_IMGS_INDEX = "SimpleListResolver.imgIndexFile";
+	private static final String PROP_REMOTE_CACHE = "SimpleListResolver.maxRemoteCacheSize";
+	private static final int DEFAULT_REMOTE_CACHE_SIZE = 100;
+	private static int maxRemoteCacheSize = DEFAULT_REMOTE_CACHE_SIZE;
 	private static Map<String, ImageRecord> imgs;
 	private static IReferentMigrator dim = new DjatokaImageMigrator();
+	// Keep track of downloaded images, delete when maxCache is hit
+	private static LinkedHashMap<String, String> remoteCacheMap; 
 	
 	/**
 	 * Referent Identifier to be resolved from Identifier Resolver. The returned
@@ -94,6 +99,9 @@ public class SimpleListResolver implements IReferentResolver {
 				}
 				File f = dim.convert(uri);
 				ir = new ImageRecord(rftId, f.getAbsolutePath());
+				// LRU cache will delete oldest file when max is reached, 
+				// will also remove object from imgs and remoteCacheMap
+				remoteCacheMap.put(rftId, f.getAbsolutePath());
 				if (f.length() > 0)
 				    imgs.put(rftId, ir);
 				else
@@ -105,6 +113,7 @@ public class SimpleListResolver implements IReferentResolver {
 		} else if (isResolvableURI(rftId) && !new File(ir.getImageFile()).exists()) {
 				// Handle ImageRecord in cache, but file does not exist on the file system
 				imgs.remove(rftId);
+				remoteCacheMap.remove(rftId);
 				return getImageRecord(rftId);
 		}
 		return ir;
@@ -149,6 +158,28 @@ public class SimpleListResolver implements IReferentResolver {
 			    imgs = getRecordMap(url.getFile());
 			} else
 				throw new ResolverException(PROP_IMGS_INDEX + " is not defined.");
+			// Initialize remote image cache management
+			String mrcs = props.getProperty(PROP_REMOTE_CACHE);
+			if (mrcs != null)
+			    maxRemoteCacheSize = Integer.parseInt(mrcs);
+			
+			remoteCacheMap = new LinkedHashMap<String, String>(16, .85f, true) {
+				private static final long serialVersionUID = 1;
+
+				protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+					logger.debug("remoteCacheSize: " + size());
+					boolean d = size() > maxRemoteCacheSize;
+					if (d) {
+						File f = new File((String) eldest.getValue());
+						logger.debug("deleting: " + eldest.getValue());
+						if (f.exists())
+							f.delete();
+						remove(eldest.getKey());
+						imgs.remove(eldest.getKey());
+					}
+					return false;
+				};
+			};
 		} catch (Exception e) {
 			logger.error(e,e);
 			throw new ResolverException(e);

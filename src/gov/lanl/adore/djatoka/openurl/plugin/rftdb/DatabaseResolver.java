@@ -81,6 +81,9 @@ public class DatabaseResolver implements IReferentResolver {
 	private static DataSource dataSource;
 	private static Map<String, ImageRecord> remoteImgs;
 	private static Map<String, ImageRecord> localImgs;
+	private static final String PROP_REMOTE_CACHE = "DatabaseResolver.maxRemoteCacheSize";
+	private static final int DEFAULT_REMOTE_CACHE_SIZE = 100;
+	private static int maxRemoteCacheSize = DEFAULT_REMOTE_CACHE_SIZE;
 	private static String query = "SELECT identifier, imageFile FROM resources WHERE identifier='\\i';";
 	
 	/**
@@ -131,10 +134,26 @@ public class DatabaseResolver implements IReferentResolver {
 	 * @throws ResolverException
 	 */
 	public void setProperties(Properties props) throws ResolverException {
-		remoteImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true));
-		localImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true){		
-			private static final int MAX_ENTRIES = 100;
-			protected boolean removeEldestEntry(Map.Entry eldest) {return size() > MAX_ENTRIES;}
+		localImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true));
+		// Initialize remote image cache management
+		String mrcs = props.getProperty(PROP_REMOTE_CACHE);
+		if (mrcs != null)
+		    maxRemoteCacheSize = Integer.parseInt(mrcs);
+		remoteImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true){		
+			private static final long serialVersionUID = 1;
+
+			protected boolean removeEldestEntry(Map.Entry<String, ImageRecord> eldest) {
+				log.debug("remoteCacheSize: " + size());
+				boolean d = size() > maxRemoteCacheSize;
+				if (d) {
+					File f = new File((String) eldest.getValue().getImageFile());
+					log.debug("deleting: " + eldest.getValue().getImageFile());
+					if (f.exists())
+						f.delete();
+					remove(eldest.getKey());
+				}
+				return false;
+			};
 		}); 
 
 		query = props.getProperty(DEFAULT_DBID + ".query");
