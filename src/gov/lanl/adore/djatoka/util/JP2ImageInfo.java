@@ -67,7 +67,10 @@ public class JP2ImageInfo implements JP2Markers {
 	 * 
 	 */
 	public String[] getXmlDocs() {
-		return xmlDocs.toArray(new String[xmlDocs.size()]);
+		if (xmlDocs != null)
+		    return xmlDocs.toArray(new String[xmlDocs.size()]);
+		else
+			return null;
 	}
 	
 	private void setImageInfo() throws IOException {
@@ -149,7 +152,7 @@ public class JP2ImageInfo implements JP2Markers {
 			currentDataLength = read(4);
 			if (currentDataLength == 0)
 				throw new IOException("Invalid box size");
-		} else if (currentDataLength == 0 && currentMarker != MARKER_JP2C) {
+		} else if (currentDataLength <= 0 && currentMarker != MARKER_JP2C) {
 			throw new IOException("Invalid box size");
 		}
 	}

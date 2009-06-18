@@ -40,6 +40,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -339,10 +340,19 @@ public class KduExtractExe implements IExtract {
 			ir.setObject(r.getObject());
 			return ir;
 		}
-		if (!new File(r.getImageFile()).exists())
+		File f = new File(r.getImageFile());
+		if (!f.exists())
 			throw new DjatokaException("Image Does Not Exist");
 		if (!ImageProcessingUtils.checkIfJp2(r.getImageFile()))
 			throw new DjatokaException("Not a JP2 image.");
+		if (f.length() <= 4096) {
+			// If < 4K bytes, image may be corrupt, use safer pure Java Metadata gatherer.
+			try {
+				return getMetadata(new FileInputStream(f));
+			} catch (Exception e) {
+				throw new DjatokaException("Invalid file.");
+			}
+		}
 		
 		Jpx_source inputSource = new Jpx_source();
 		Jp2_family_src jp2_family_in = new Jp2_family_src();
