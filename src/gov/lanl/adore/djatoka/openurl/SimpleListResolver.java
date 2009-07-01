@@ -39,6 +39,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import gov.lanl.adore.djatoka.util.ImageRecord;
+import gov.lanl.util.ConcurrentEvictionFileDelete;
+import gov.lanl.util.ConcurrentLinkedHashMap;
 import info.openurl.oom.entities.Referent;
 
 /**
@@ -61,7 +63,7 @@ public class SimpleListResolver implements IReferentResolver {
 	private static Map<String, ImageRecord> imgs;
 	private static IReferentMigrator dim = new DjatokaImageMigrator();
 	// Keep track of downloaded images, delete when maxCache is hit
-	private static LinkedHashMap<String, String> remoteCacheMap; 
+	private static ConcurrentLinkedHashMap<String,String> remoteCacheMap;
 	
 	/**
 	 * Referent Identifier to be resolved from Identifier Resolver. The returned
@@ -90,7 +92,7 @@ public class SimpleListResolver implements IReferentResolver {
 				if (dim.getProcessingList().contains(uri.toString())) {
 					int i = 0;
 					Thread.sleep(1000);
-					while (dim.getProcessingList().contains(uri) && i < (5 * 60)){
+					while (dim.getProcessingList().contains(uri.toString()) && i < (5 * 60)){
 						Thread.sleep(1000);
 						i++;
 					}
@@ -101,6 +103,7 @@ public class SimpleListResolver implements IReferentResolver {
 				ir = new ImageRecord(rftId, f.getAbsolutePath());
 				// LRU cache will delete oldest file when max is reached, 
 				// will also remove object from imgs and remoteCacheMap
+				logger.debug("createRemote (" + (remoteCacheMap.size()-1) + ") : " + rftId);
 				remoteCacheMap.put(rftId, f.getAbsolutePath());
 				if (f.length() > 0)
 				    imgs.put(rftId, ir);
@@ -111,10 +114,11 @@ public class SimpleListResolver implements IReferentResolver {
 				throw new ResolverException(e);
 			}
 		} else if (isResolvableURI(rftId) && !new File(ir.getImageFile()).exists()) {
-				// Handle ImageRecord in cache, but file does not exist on the file system
-				imgs.remove(rftId);
-				remoteCacheMap.remove(rftId);
-				return getImageRecord(rftId);
+		    // Handle ImageRecord in cache, but file does not exist on the file system
+			logger.debug("missingCachedRemote: " + ir.getImageFile() + " for " + rftId);
+		    imgs.remove(rftId);
+		    remoteCacheMap.remove(rftId);
+		    return getImageRecord(rftId);
 		}
 		return ir;
 	}
@@ -162,24 +166,7 @@ public class SimpleListResolver implements IReferentResolver {
 			String mrcs = props.getProperty(PROP_REMOTE_CACHE);
 			if (mrcs != null)
 			    maxRemoteCacheSize = Integer.parseInt(mrcs);
-			
-			remoteCacheMap = new LinkedHashMap<String, String>(16, .85f, true) {
-				private static final long serialVersionUID = 1;
-
-				protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
-					logger.debug("remoteCacheSize: " + size());
-					boolean d = size() > maxRemoteCacheSize;
-					if (d) {
-						File f = new File((String) eldest.getValue());
-						logger.debug("deleting: " + eldest.getValue());
-						if (f.exists())
-							f.delete();
-						remove(eldest.getKey());
-						imgs.remove(eldest.getKey());
-					}
-					return false;
-				};
-			};
+			remoteCacheMap = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.LRU, maxRemoteCacheSize, new ConcurrentEvictionFileDelete());
 		} catch (Exception e) {
 			logger.error(e,e);
 			throw new ResolverException(e);

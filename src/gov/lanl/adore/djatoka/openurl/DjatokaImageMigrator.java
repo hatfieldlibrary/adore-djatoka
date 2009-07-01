@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,7 +53,7 @@ import org.apache.log4j.Logger;
  */
 public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator {
 	static Logger logger = Logger.getLogger(DjatokaImageMigrator.class);
-	private List<String> processing = java.util.Collections.synchronizedList(new LinkedList<String>());
+	private static List<String> processing = java.util.Collections.synchronizedList(new ArrayList<String>());
 	private HashMap<String, String> formatMap;
 	
 	/**
@@ -86,10 +87,10 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 	 * @throws DjatokaException
 	 */
 	public File convert(URI uri) throws DjatokaException {
+		processing.add(uri.toString());
+		File urlLocal = null;
 		try {
 			logger.info("processingRemoteURI: " + uri.toURL());
-			processing.add(uri.toString());
-			File urlLocal = null;
 			boolean isJp2 = false;
 			// Obtain Resource
 			InputStream src = IOUtils.getInputStream(uri.toURL());
@@ -133,6 +134,7 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 			
 			return urlLocal;
 		} catch (Exception e) {
+			urlLocal.delete();
 			throw new DjatokaException(e);
 		} finally {
 			if (processing.contains(uri.toString()))

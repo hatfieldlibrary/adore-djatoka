@@ -28,6 +28,8 @@ import gov.lanl.adore.djatoka.openurl.IReferentMigrator;
 import gov.lanl.adore.djatoka.openurl.IReferentResolver;
 import gov.lanl.adore.djatoka.openurl.ResolverException;
 import gov.lanl.adore.djatoka.util.ImageRecord;
+import gov.lanl.util.ConcurrentEvictionFileDelete;
+import gov.lanl.util.ConcurrentLinkedHashMap;
 import gov.lanl.util.DBCPUtils;
 
 import info.openurl.oom.entities.Referent;
@@ -77,9 +79,9 @@ public class DatabaseResolver implements IReferentResolver {
 	public static final String FIELD_IDENTIFIER = "identifier";
 	public static final String FIELD_IMAGEFILE = "imageFile";
 	public static final String REPLACE_ID_KEY = "\\i";
-	private static IReferentMigrator dim = new DjatokaImageMigrator();
+	public static IReferentMigrator dim = new DjatokaImageMigrator();
 	private static DataSource dataSource;
-	private static Map<String, ImageRecord> remoteImgs;
+	private static ConcurrentLinkedHashMap<String,String> remoteCacheMap;
 	private static Map<String, ImageRecord> localImgs;
 	private static final String PROP_REMOTE_CACHE = "DatabaseResolver.maxRemoteCacheSize";
 	private static final int DEFAULT_REMOTE_CACHE_SIZE = 100;
@@ -120,7 +122,7 @@ public class DatabaseResolver implements IReferentResolver {
 	}
 
 	public int getStatus(String rftId) {
-		if (remoteImgs.get(rftId) != null || getLocalImage(rftId) != null)
+		if (remoteCacheMap.get(rftId) != null || getLocalImage(rftId) != null)
 			return HttpServletResponse.SC_OK;
 		else if (dim.getProcessingList().contains(rftId))
 			return HttpServletResponse.SC_ACCEPTED;
@@ -139,23 +141,7 @@ public class DatabaseResolver implements IReferentResolver {
 		String mrcs = props.getProperty(PROP_REMOTE_CACHE);
 		if (mrcs != null)
 		    maxRemoteCacheSize = Integer.parseInt(mrcs);
-		remoteImgs = Collections.synchronizedMap(new LinkedHashMap<String, ImageRecord>(16, 0.75f, true){		
-			private static final long serialVersionUID = 1;
-
-			protected boolean removeEldestEntry(Map.Entry<String, ImageRecord> eldest) {
-				log.debug("remoteCacheSize: " + size());
-				boolean d = size() > maxRemoteCacheSize;
-				if (d) {
-					File f = new File((String) eldest.getValue().getImageFile());
-					log.debug("deleting: " + eldest.getValue().getImageFile());
-					if (f.exists())
-						f.delete();
-					remove(eldest.getKey());
-				}
-				return false;
-			};
-		}); 
-
+		remoteCacheMap = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.LRU, maxRemoteCacheSize, new ConcurrentEvictionFileDelete()); 
 		query = props.getProperty(DEFAULT_DBID + ".query");
 		if (query == null)
 			throw new ResolverException(DEFAULT_DBID + ".query is not defined in properties");
@@ -209,34 +195,33 @@ public class DatabaseResolver implements IReferentResolver {
 	}
 	
 	private ImageRecord getRemoteImage(String rftId) throws ResolverException {
-		ImageRecord ir = remoteImgs.get(rftId);
-		if (ir == null || !new File(ir.getImageFile()).exists()) {
+		String file = remoteCacheMap.get(rftId);
+		if (file == null || !new File(file).exists()) {
 			try {
 				URI uri = new URI(rftId);
 				if (dim.getProcessingList().contains(uri.toString())) {
 					int i = 0;
 					Thread.sleep(1000);
-					while (dim.getProcessingList().contains(uri)
+					while (dim.getProcessingList().contains(uri.toString())
 							&& i < (5 * 60)) {
 						Thread.sleep(1000);
 						i++;
 					}
-					if (remoteImgs.containsKey(rftId))
-						return remoteImgs.get(rftId);
+					if (remoteCacheMap.containsKey(rftId))
+						return new ImageRecord(rftId, remoteCacheMap.get(rftId));
 				}
 				File f = dim.convert(uri);
-				ir = new ImageRecord(rftId, f.getAbsolutePath());
 				if (f.length() > 0)
-					remoteImgs.put(rftId, ir);
+					remoteCacheMap.put(rftId, f.getAbsolutePath());
 				else
 					throw new ResolverException(
-							"An error occurred processing file:"
-									+ uri.toURL().toString());
+							"An error occurred processing file:" + uri.toURL().toString());
+				file = f.getAbsolutePath();
 		    } catch (Exception e) {
 				log.error("Unable to access " + rftId);
 		    	return null;
 			}
 		}
-		return ir;
+		return new ImageRecord(rftId, file);
 	}
 }

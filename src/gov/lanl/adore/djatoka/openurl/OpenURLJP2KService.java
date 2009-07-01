@@ -31,6 +31,8 @@ import gov.lanl.adore.djatoka.kdu.KduExtractExe;
 import gov.lanl.adore.djatoka.plugin.ITransformPlugIn;
 import gov.lanl.adore.djatoka.util.IOUtils;
 import gov.lanl.adore.djatoka.util.ImageRecord;
+import gov.lanl.util.ConcurrentEvictionFileDelete;
+import gov.lanl.util.ConcurrentLinkedHashMap;
 import gov.lanl.util.HttpDate;
 import info.openurl.oom.ContextObject;
 import info.openurl.oom.OpenURLRequest;
@@ -83,7 +85,7 @@ public class OpenURLJP2KService implements Service, FormatConstants {
     private static boolean transformCheck = false;
     private static ITransformPlugIn transform;
     private static String cacheDir = null;
-    private static TileCacheManager<String, String> tileCache;
+    private static ConcurrentLinkedHashMap<String,String> tileCache;
     private static DjatokaExtractProcessor extractor;
     private static int maxPixels = DEFAULT_CACHE_MAXPIXELS;
 	
@@ -108,7 +110,7 @@ public class OpenURLJP2KService implements Service, FormatConstants {
                 	cacheTiles = Boolean.parseBoolean(props.getProperty(PROPS_KEY_CACHE_ENABLED));
                 if (cacheTiles) {
                 	int cacheSize = Integer.parseInt(props.getProperty(PROPS_KEY_CACHE_SIZE,DEFAULT_CACHE_SIZE));
-                	tileCache = new TileCacheManager<String,String>(cacheSize);
+                	tileCache = ConcurrentLinkedHashMap.create(ConcurrentLinkedHashMap.EvictionPolicy.SECOND_CHANCE, cacheSize, new ConcurrentEvictionFileDelete());
                 }
                 if (props.getProperty(PROPS_KEY_TRANSFORM) != null) {
                 	transformCheck = true;
@@ -239,27 +241,32 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 						String hash = getTileHash(r, params);
 						String file = tileCache.get(hash + ext);
 						File f;
-						if (file == null || 
-								(file != null 
+						if (file == null
+								|| (file != null
 										&& !(f = new File(file)).exists() 
-										&& f.length() > 0)) {
+										    && f.length() > 0)) {
 							if (cacheDir != null)
-								f = File.createTempFile("cache"
-										+ hash.hashCode() + "-", "." + ext,
-										new File(cacheDir));
+								f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext, new File(cacheDir));
 							else
-								f = File.createTempFile("cache"
-										+ hash.hashCode() + "-", "." + ext);
+								f = File.createTempFile("cache" + hash.hashCode() + "-", "." + ext);
 							f.deleteOnExit();
 							file = f.getAbsolutePath();
 							extractor.extractImage(r.getImageFile(), file, params, format);
-							if (tileCache.get(hash + ext) == null) {
-								tileCache.put(hash + ext, file);
-								bytes = IOUtils.getBytesFromFile(f);
+							boolean cacheTile = false;
+							synchronized (tileCache) {
+								String tilePath = tileCache.get(hash + ext);
+								if (tilePath == null) {
+									tileCache.put(hash + ext, file);
+									cacheTile = true;
+								} else {
+									cacheTile = false;
+								}
+							}
+							bytes = IOUtils.getBytesFromFile(f);
+							if (cacheTile)
 								logger.debug("makingTile: " + file + " " + bytes.length + " params: " + params);
-							} else {
-								// Handles simultaneous request on separate thread, ignores cache.
-								bytes = IOUtils.getBytesFromFile(f);
+							else {
+								// For simultaneous request on separate thread, delete current temp file.
 								f.delete();
 								logger.debug("tempTile: " + file + " " + bytes.length + " params: " + params);
 							}
@@ -280,6 +287,11 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 				responseFormat = "text/plain";
 				status = HttpServletResponse.SC_NOT_FOUND;
 			} catch (Exception e) {
+				logger.error(e,e);
+			    bytes = e.getMessage().getBytes();
+				responseFormat = "text/plain";
+				status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+			} catch (Error e) {
 				logger.error(e,e);
 			    bytes = e.getMessage().getBytes();
 				responseFormat = "text/plain";
