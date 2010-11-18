@@ -100,7 +100,7 @@
           <exclude name="servlet-api.jar"/>
         </lib>
     </war>
-    <tar destfile="adore-djatoka-${version}.tar.gz" compression="gzip" >
+    <tar destfile="adore-djatoka-${version}.tar.gz" compression="gzip" longfile="gnu">
         <tarfileset dir="." mode="755" prefix="adore-djatoka-${version}">
             <include name="bin/**/*"/>
         </tarfileset>

@@ -313,15 +313,6 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 	private boolean isCacheable(DjatokaDecodeParam params) {
 		if (transformCheck && params.getTransform().isTransformable())
 			return false;
-		if (params.getScalingFactor() != 1.0)
-			return false;
-		if (params.getScalingDimensions() != null) {
-			int[] sd = params.getScalingDimensions();
-			if (sd.length == 1 && sd[0] >= maxPixels/2) 
-				return false;
-			if (sd.length == 2 && (sd[0] * sd[1]) >= maxPixels) 
-				return false;
-		}
 		if (params.getRegion() != null) {
 			String[] r = params.getRegion().split(",");
 			if (r.length == 4) {
