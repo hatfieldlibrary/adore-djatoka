@@ -286,8 +286,8 @@ public class JP2ImageInfo implements JP2Markers {
 				int sgcod_wavelet = read(1); // wavelet type (9:7 && 5:3)
 				hend = true;
 			} else {
-				throw new IOException("Expecting MARKER_COD or MARKER_SIZ in header");
-			}
+			        break;
+                        }
 			
 		}
 	}
