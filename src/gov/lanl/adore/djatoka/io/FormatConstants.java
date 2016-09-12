@@ -40,9 +40,9 @@ public interface FormatConstants {
 	/** PNG Identifier Constant - "png" */
 	public static final String FORMAT_ID_PNG= "png";
 	/** BMP Identifier Constant - "bmp" */
-	public static final String FORMAT_ID_BMP= "bmp";
+	//public static final String FORMAT_ID_BMP= "bmp";
 	/** PNM Identifier Constant - "pnm" */
-	public static final String FORMAT_ID_PNM= "pnm";
+	//public static final String FORMAT_ID_PNM= "pnm";
 	/** TIFF Identifier Constant - "tiff" */
 	public static final String FORMAT_ID_TIFF= "tiff";
 	/** TIFF Alternate Identifier Constant - "tif" */
@@ -71,7 +71,7 @@ public interface FormatConstants {
 	/** BMP Mimetype Constant - "image/bmp" */
 	public static final String FORMAT_MIMEYPE_BMP = "image/bmp";
 	/** PNM Mimetype Constant - "image/pnm" */
-	public static final String FORMAT_MIMEYPE_PNM = "image/pnm";
+	////public static final String FORMAT_MIMEYPE_PNM = "image/pnm";
 	/** TIFF Mimetype Constant - "image/tiff" */
 	public static final String FORMAT_MIMEYPE_TIFF = "image/tiff";
 	/** GIF Mimetype Constant - "image/gif" */

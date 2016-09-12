@@ -64,8 +64,8 @@ public class DjatokaImageMigrator implements FormatConstants, IReferentMigrator 
 		formatMap.put(FORMAT_ID_JPEG, FORMAT_MIMEYPE_JPEG);
 		formatMap.put(FORMAT_ID_JP2, FORMAT_MIMEYPE_JP2);
 		formatMap.put(FORMAT_ID_PNG, FORMAT_MIMEYPE_PNG);
-		formatMap.put(FORMAT_ID_BMP, FORMAT_MIMEYPE_BMP);
-		formatMap.put(FORMAT_ID_PNM, FORMAT_MIMEYPE_PNM);
+		//formatMap.put(FORMAT_ID_BMP, FORMAT_MIMEYPE_BMP);
+		//formatMap.put(FORMAT_ID_PNM, FORMAT_MIMEYPE_PNM);
 		formatMap.put(FORMAT_ID_TIFF, FORMAT_MIMEYPE_TIFF);
 		formatMap.put(FORMAT_ID_GIF, FORMAT_MIMEYPE_GIF);
 		// Additional Extensions
