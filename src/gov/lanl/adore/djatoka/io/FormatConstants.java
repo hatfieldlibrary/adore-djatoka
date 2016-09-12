@@ -39,10 +39,6 @@ public interface FormatConstants {
 	public static final String FORMAT_ID_JP2 = "jp2";
 	/** PNG Identifier Constant - "png" */
 	public static final String FORMAT_ID_PNG= "png";
-	/** BMP Identifier Constant - "bmp" */
-	//public static final String FORMAT_ID_BMP= "bmp";
-	/** PNM Identifier Constant - "pnm" */
-	//public static final String FORMAT_ID_PNM= "pnm";
 	/** TIFF Identifier Constant - "tiff" */
 	public static final String FORMAT_ID_TIFF= "tiff";
 	/** TIFF Alternate Identifier Constant - "tif" */
@@ -70,8 +66,6 @@ public interface FormatConstants {
 	public static final String FORMAT_MIMEYPE_PNG = "image/png";
 	/** BMP Mimetype Constant - "image/bmp" */
 	public static final String FORMAT_MIMEYPE_BMP = "image/bmp";
-	/** PNM Mimetype Constant - "image/pnm" */
-	////public static final String FORMAT_MIMEYPE_PNM = "image/pnm";
 	/** TIFF Mimetype Constant - "image/tiff" */
 	public static final String FORMAT_MIMEYPE_TIFF = "image/tiff";
 	/** GIF Mimetype Constant - "image/gif" */
@@ -87,10 +81,6 @@ public interface FormatConstants {
 	public static final String DEFAULT_JP2_WRITER = "gov.lanl.adore.djatoka.io.writer.JP2Writer";
 	/** Default PNG Writer - "gov.lanl.adore.djatoka.io.writer.PNGWriter" */
 	public static final String DEFAULT_PNG_WRITER = "gov.lanl.adore.djatoka.io.writer.PNGWriter";
-	/** Default BMP Writer - "gov.lanl.adore.djatoka.io.writer.BMPWriter" */
-	//public static final String DEFAULT_BMP_WRITER = "gov.lanl.adore.djatoka.io.writer.BMPWriter";
-	/** Default PNM Writer - "gov.lanl.adore.djatoka.io.writer.PNMWriter" */
-	//public static final String DEFAULT_PNM_WRITER = "gov.lanl.adore.djatoka.io.writer.PNMWriter";
 	/** Default TIFF Writer - "gov.lanl.adore.djatoka.io.writer.TIFWriter" */
 	public static final String DEFAULT_TIFF_WRITER = "gov.lanl.adore.djatoka.io.writer.TIFWriter";
 	/** Default GIF Writer - "gov.lanl.adore.djatoka.io.writer.GIFWriter" */

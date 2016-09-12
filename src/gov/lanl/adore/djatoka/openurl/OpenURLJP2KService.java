@@ -349,12 +349,8 @@ public class OpenURLJP2KService implements Service, FormatConstants {
 			return FORMAT_ID_JPG;
 		if (mimetype.equals(FORMAT_MIMEYPE_PNG))
 			return FORMAT_ID_PNG;
-		//if (mimetype.equals(FORMAT_MIMEYPE_BMP))
-		//	return FORMAT_ID_BMP;
 		if (mimetype.equals(FORMAT_MIMEYPE_GIF))
 			return FORMAT_ID_GIF;
-		//if (mimetype.equals(FORMAT_MIMEYPE_PNM))
-		//	return FORMAT_ID_PNM;
 		if (mimetype.equals(FORMAT_MIMEYPE_JP2))
 			return FORMAT_ID_JP2;
 		if (mimetype.equals(FORMAT_MIMEYPE_JPX))
