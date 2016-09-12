@@ -1,3 +1,7 @@
+Replaced com.sun.image.codec dependencies, heavily borrowing code from freelib-djatoka.  Removed support for BMP and PNM.
+
+
+
 Dear User,
 
 Accompanying this message is a copy of the latest version of the djatoka software, including Kakadu-based JPEG 2000 compression and extraction software.  The Kakadu Libraries and KDU executables are provided for NON-COMMERCIAL USE ONLY.  
