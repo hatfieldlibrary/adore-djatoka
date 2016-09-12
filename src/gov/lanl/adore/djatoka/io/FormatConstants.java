@@ -88,9 +88,9 @@ public interface FormatConstants {
 	/** Default PNG Writer - "gov.lanl.adore.djatoka.io.writer.PNGWriter" */
 	public static final String DEFAULT_PNG_WRITER = "gov.lanl.adore.djatoka.io.writer.PNGWriter";
 	/** Default BMP Writer - "gov.lanl.adore.djatoka.io.writer.BMPWriter" */
-	public static final String DEFAULT_BMP_WRITER = "gov.lanl.adore.djatoka.io.writer.BMPWriter";
+	//public static final String DEFAULT_BMP_WRITER = "gov.lanl.adore.djatoka.io.writer.BMPWriter";
 	/** Default PNM Writer - "gov.lanl.adore.djatoka.io.writer.PNMWriter" */
-	public static final String DEFAULT_PNM_WRITER = "gov.lanl.adore.djatoka.io.writer.PNMWriter";
+	//public static final String DEFAULT_PNM_WRITER = "gov.lanl.adore.djatoka.io.writer.PNMWriter";
 	/** Default TIFF Writer - "gov.lanl.adore.djatoka.io.writer.TIFWriter" */
 	public static final String DEFAULT_TIFF_WRITER = "gov.lanl.adore.djatoka.io.writer.TIFWriter";
 	/** Default GIF Writer - "gov.lanl.adore.djatoka.io.writer.GIFWriter" */

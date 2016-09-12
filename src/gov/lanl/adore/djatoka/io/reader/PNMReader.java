@@ -35,8 +35,6 @@ import javax.media.jai.RenderedImageAdapter;
 
 import org.apache.log4j.Logger;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageDecoder;
 
 /**
  * Returns BufferedImage give a PNM image InputStream or file path. 
@@ -53,14 +51,12 @@ public class PNMReader implements IReader{
 	 * @throws FormatIOException
 	 */
 	public BufferedImage open(String input) throws FormatIOException {
-		RenderedImageAdapter aid = null;
-		try {
-			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", new File(input), null);
-			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
-		} catch (IOException e) {
+		//try {
 			return null;
-		}
-		return aid.getAsBufferedImage();
+	//		return new PNMImage(input).getBufferedImage();
+//		} catch (final IOException details) {
+//			throw new FormatIOException(details);
+//		}
 	}
 
 	/**
@@ -70,13 +66,12 @@ public class PNMReader implements IReader{
 	 * @throws FormatIOException
 	 */
 	public BufferedImage open(InputStream input) throws FormatIOException {
-		RenderedImageAdapter aid = null;
-		try {
-			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", input, null);
-			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
-		} catch (IOException e) {
+	//	try {
 			return null;
-		}
-		return aid.getAsBufferedImage();
+			//return new PNMImage(input).getBufferedImage();
+//		} catch (final IOException details) {
+//			throw new FormatIOException(details);
+//		}
+
 	}
 }

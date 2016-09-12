@@ -43,9 +43,6 @@ import org.apache.log4j.Logger;
 
 import uk.co.mmscomputing.imageio.tiff.TIFFImageWriterSpi;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageEncoder;
-import com.sun.media.jai.codec.TIFFEncodeParam;
 
 /**
  * TIF File Writer. Uses JAI to write BufferedImage as TIF
@@ -53,7 +50,7 @@ import com.sun.media.jai.codec.TIFFEncodeParam;
  *
  */
 public class TIFWriter implements IWriter {
-	static Logger logger = Logger.getLogger(TIFWriter.class);
+	static Logger LOGGER = Logger.getLogger(TIFWriter.class);
 	/**
 	 * Write a BufferedImage instance using implementation to the 
 	 * provided OutputStream.
@@ -62,95 +59,103 @@ public class TIFWriter implements IWriter {
 	 * @throws FormatIOException
 	 */
 	public void write(BufferedImage bi, OutputStream os) throws FormatIOException {
-		writeUsingImageIO(bi, os);
-		//writeUsingJAI(bi, os);
-		//writeUsingImageJ(bi, os);
-		//writeUsingMMCComputingImageIO(bi, os);
-	}
-	
-	private void writeUsingImageJ(BufferedImage bi, OutputStream os) throws FormatIOException {
-		ImagePlus imp = new ImagePlus("tempTif", bi);
-		TiffEncoder encoder = new TiffEncoder(imp.getFileInfo());
-		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(os));
+		ImagePlus imagePlus = new ImagePlus("tempTif", bi);
+		TiffEncoder encoder = new TiffEncoder(imagePlus.getFileInfo());
+		BufferedOutputStream bufStream = new BufferedOutputStream(os);
+		DataOutputStream out = new DataOutputStream(bufStream);
+
 		try {
 			encoder.write(out);
 		} catch (IOException e) {
-			logger.error(e);
-			throw new FormatIOException(e);
+			LOGGER.error(e.getMessage(), e);
+			throw new FormatIOException(e.getMessage(), e);
 		}
-	}
-	
-	private void writeUsingImageIO(BufferedImage bi, OutputStream os) throws FormatIOException {
-		if (bi != null) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(os);
-				ImageIO.write(bi, "tif", bos);
-			} catch (IOException e) {
-				logger.error(e,e);
-			} finally {
-				if (bos != null) {
-					try {
-						bos.flush();
-						bos.close();
-					} catch (IOException e) {
-						logger.error(e,e);
-						throw new FormatIOException(e);
-					}
-				}
-			}
-		}
-	}
-	
-	/* issue with using this serialization for kakadu input */
-	private void writeUsingJAI(BufferedImage bi, OutputStream os) throws FormatIOException {
-		if (bi != null) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(os);
-				TIFFEncodeParam param = new TIFFEncodeParam();
-				ImageEncoder enc = ImageCodec.createImageEncoder("TIFF", bos, param);
-				enc.encode(bi);
-			} catch (IOException e) {
-				logger.error(e,e);
-			} finally {
-				if (bos != null) {
-					try {
-						bos.flush();
-						bos.close();
-					} catch (IOException e) {
-						logger.error(e,e);
-						throw new FormatIOException(e);
-					}
-				}
-			}
-		} 
-	}
-	
-    private void writeUsingMMCComputingImageIO(BufferedImage bi, OutputStream os) throws FormatIOException {
-        TIFFImageWriterSpi tiffspi = new TIFFImageWriterSpi();
-        ImageOutputStream ios = null;
-        ImageWriter writer;
-        try {
-            writer = tiffspi.createWriterInstance();
-            ios = ImageIO.createImageOutputStream(os);
-            writer.setOutput(ios);
-            writer.write(bi);
-        } catch (IOException e) {
-            logger.error(e,e);
-        } finally {
-            if (ios != null) {
-                try {
-                    ios.flush();
-                    ios.close();
-                } catch (IOException e) {
-                    logger.error(e,e);
-                    throw new FormatIOException(e);
-                }
-            }
-        }
 
-    } 
+	}
+	
+//	private void writeUsingImageJ(BufferedImage bi, OutputStream os) throws FormatIOException {
+//		ImagePlus imp = new ImagePlus("tempTif", bi);
+//		TiffEncoder encoder = new TiffEncoder(imp.getFileInfo());
+//		DataOutputStream out = new DataOutputStream(new BufferedOutputStream(os));
+//		try {
+//			encoder.write(out);
+//		} catch (IOException e) {
+//			logger.error(e);
+//			throw new FormatIOException(e);
+//		}
+//	}
+//
+//	private void writeUsingImageIO(BufferedImage bi, OutputStream os) throws FormatIOException {
+//		if (bi != null) {
+//			BufferedOutputStream bos = null;
+//			try {
+//				bos = new BufferedOutputStream(os);
+//				ImageIO.write(bi, "tif", bos);
+//			} catch (IOException e) {
+//				logger.error(e,e);
+//			} finally {
+//				if (bos != null) {
+//					try {
+//						bos.flush();
+//						bos.close();
+//					} catch (IOException e) {
+//						logger.error(e,e);
+//						throw new FormatIOException(e);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	/* issue with using this serialization for kakadu input */
+//	private void writeUsingJAI(BufferedImage bi, OutputStream os) throws FormatIOException {
+//		if (bi != null) {
+//			BufferedOutputStream bos = null;
+//			try {
+//				bos = new BufferedOutputStream(os);
+//				TIFFEncodeParam param = new TIFFEncodeParam();
+//				ImageEncoder enc = ImageCodec.createImageEncoder("TIFF", bos, param);
+//				enc.encode(bi);
+//			} catch (IOException e) {
+//				logger.error(e,e);
+//			} finally {
+//				if (bos != null) {
+//					try {
+//						bos.flush();
+//						bos.close();
+//					} catch (IOException e) {
+//						logger.error(e,e);
+//						throw new FormatIOException(e);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//    private void writeUsingMMCComputingImageIO(BufferedImage bi, OutputStream os) throws FormatIOException {
+//        TIFFImageWriterSpi tiffspi = new TIFFImageWriterSpi();
+//        ImageOutputStream ios = null;
+//        ImageWriter writer;
+//        try {
+//            writer = tiffspi.createWriterInstance();
+//            ios = ImageIO.createImageOutputStream(os);
+//            writer.setOutput(ios);
+//            writer.write(bi);
+//        } catch (IOException e) {
+//            logger.error(e,e);
+//        } finally {
+//            if (ios != null) {
+//                try {
+//                    ios.flush();
+//                    ios.close();
+//                } catch (IOException e) {
+//                    logger.error(e,e);
+//                    throw new FormatIOException(e);
+//                }
+//            }
+//        }
+//
+//    }
 	
 	/**
 	 * NOT SUPPORTED. 
