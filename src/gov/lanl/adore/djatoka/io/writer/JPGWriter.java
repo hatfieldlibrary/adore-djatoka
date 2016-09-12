@@ -23,23 +23,23 @@
 
 package gov.lanl.adore.djatoka.io.writer;
 
-import gov.lanl.adore.djatoka.io.FormatIOException;
-import gov.lanl.adore.djatoka.io.IWriter;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.Properties;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+
+import gov.lanl.adore.djatoka.io.FormatIOException;
+import gov.lanl.adore.djatoka.io.IWriter;
 import org.apache.log4j.Logger;
 
-import com.sun.image.codec.jpeg.ImageFormatException;
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageEncoder;
+
 
 /**
  * JPG File Writer. Uses JAI to write BufferedImage as JPG
@@ -59,43 +59,57 @@ public class JPGWriter implements IWriter {
 	 * @throws FormatIOException
 	 */
 	public void write(BufferedImage bi, OutputStream os) throws FormatIOException {
-		writeUsingJAI(bi, os);
+		final Iterator<ImageWriter> iterator = ImageIO.getImageWritersByFormatName("jpeg");
+
+		try {
+			final ImageWriter jpgWriter = iterator.next();
+			final ImageWriteParam iwp = jpgWriter.getDefaultWriteParam();
+
+			iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			iwp.setCompressionQuality((float) (q / 100.0));
+
+			jpgWriter.setOutput(ImageIO.createImageOutputStream(os));
+			jpgWriter.write(null, new IIOImage(bi, null, null), iwp);
+			jpgWriter.dispose();
+		} catch (final IOException details) {
+			throw new FormatIOException(details);
+		}
 	}
 	
 	/* the JAI implementation is a bit faster */
-	private void writeUsingJavaAPI(BufferedImage bi, OutputStream os) throws FormatIOException {
-		if (bi != null) {
-			BufferedOutputStream bos = null;
-			bos = new BufferedOutputStream(os);
-		    JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(bos);
-            JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(bi);
-            param.setQuality((float)(q/100.0), true);
-            try {
-				encoder.encode(bi, param);
-			} catch (ImageFormatException e) {
-				logger.error(e);
-				throw new FormatIOException(e);
-			} catch (IOException e) {
-				logger.error(e);
-				throw new FormatIOException(e);
-			}
-		}
-	}
-	
-	private void writeUsingJAI(BufferedImage bi, OutputStream os) throws FormatIOException {
-		if (bi != null) {
-			BufferedOutputStream bos = null;
-			try {
-				bos = new BufferedOutputStream(os);
-				com.sun.media.jai.codec.JPEGEncodeParam param = new com.sun.media.jai.codec.JPEGEncodeParam();
-				param.setQuality((float)(q/100.0));
-				ImageEncoder enc = ImageCodec.createImageEncoder("jpeg", bos, param);
-				enc.encode(bi);
-			} catch (IOException e) {
-				logger.error(e);
-			}
-		}
-	}
+//	private void writeUsingJavaAPI(BufferedImage bi, OutputStream os) throws FormatIOException {
+//		if (bi != null) {
+//			BufferedOutputStream bos = null;
+//			bos = new BufferedOutputStream(os);
+//		    JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(bos);
+//            JPEGEncodeParam param = encoder.getDefaultJPEGEncodeParam(bi);
+//            param.setQuality((float)(q/100.0), true);
+//            try {
+//				encoder.encode(bi, param);
+//			} catch (ImageFormatException e) {
+//				logger.error(e);
+//				throw new FormatIOException(e);
+//			} catch (IOException e) {
+//				logger.error(e);
+//				throw new FormatIOException(e);
+//			}
+//		}
+//	}
+//
+//	private void writeUsingJAI(BufferedImage bi, OutputStream os) throws FormatIOException {
+//		if (bi != null) {
+//			BufferedOutputStream bos = null;
+//			try {
+//				bos = new BufferedOutputStream(os);
+//				com.sun.media.jai.codec.JPEGEncodeParam param = new com.sun.media.jai.codec.JPEGEncodeParam();
+//				param.setQuality((float)(q/100.0));
+//				ImageEncoder enc = ImageCodec.createImageEncoder("jpeg", bos, param);
+//				enc.encode(bi);
+//			} catch (IOException e) {
+//				logger.error(e);
+//			}
+//		}
+//	}
 
 	/**
 	 * Set the Writer Implementations Serialization properties. Only JPGWriter.quality_level

@@ -33,13 +33,12 @@ import java.io.InputStream;
 
 import javax.media.jai.RenderedImageAdapter;
 
+
 import org.apache.log4j.Logger;
 
-import com.sun.media.jai.codec.ImageCodec;
-import com.sun.media.jai.codec.ImageDecoder;
 
 /**
- * Returns BufferedImage give a PNM image InputStream or file path. 
+ * Returns BufferedImage give a PNM image InputStream or file path.
  * Uses JAI to open PNM formatted images.
  * @author Ryan Chute
  *
@@ -53,14 +52,11 @@ public class PNMReader implements IReader{
 	 * @throws FormatIOException
 	 */
 	public BufferedImage open(String input) throws FormatIOException {
-		RenderedImageAdapter aid = null;
 		try {
-			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", new File(input), null);
-			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
-		} catch (IOException e) {
-			return null;
+			return new PNMImage(input).getBufferedImage();
+		} catch (final IOException details) {
+			throw new FormatIOException(details);
 		}
-		return aid.getAsBufferedImage();
 	}
 
 	/**
@@ -70,13 +66,11 @@ public class PNMReader implements IReader{
 	 * @throws FormatIOException
 	 */
 	public BufferedImage open(InputStream input) throws FormatIOException {
-		RenderedImageAdapter aid = null;
 		try {
-			ImageDecoder enc = ImageCodec.createImageDecoder("PNM", input, null);
-			aid = new RenderedImageAdapter(enc.decodeAsRenderedImage());
-		} catch (IOException e) {
-			return null;
+			return new PNMImage(input).getBufferedImage();
+		} catch (final IOException details) {
+			throw new FormatIOException(details);
 		}
-		return aid.getAsBufferedImage();
+
 	}
 }
